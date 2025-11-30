@@ -1,0 +1,243 @@
+@import "tailwindcss";
+
+/* Retro indie web style - RES72 inspired with warm tones */
+:root {
+  --background: #d8d4cf;
+  --foreground: #3a3632;
+  --card: #f5f3f0;
+  --card-foreground: #3a3632;
+  --border: #a09890;
+  --muted: #e0dcd7;
+  --muted-foreground: #6b6560;
+  --accent: #d8d4cf;
+  --accent-foreground: #3a3632;
+  --primary: #3a3632;
+  --primary-foreground: #f5f3f0;
+  --secondary: #e0dcd7;
+  --secondary-foreground: #3a3632;
+  --destructive: #cc0000;
+  --destructive-foreground: #ffffff;
+}
+
+/* Dark mode - denim blue theme */
+[data-theme="dark"] {
+  --background: #d8d4cf;
+  --foreground: #3a3632;
+  --card: #f5e6a3;
+  --card-foreground: #3a3632;
+  --border: #a09890;
+  --muted: #e0dcd7;
+  --muted-foreground: #5a5550;
+  --accent: #243352;
+  --accent-foreground: #e8e6e3;
+  --primary: #3a3632;
+  --primary-foreground: #f5e6a3;
+  --secondary: #e0dcd7;
+  --secondary-foreground: #3a3632;
+  --destructive: #ff6b6b;
+  --destructive-foreground: #ffffff;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --font-sans: 'Courier New', Courier, monospace;
+  --font-mono: 'Courier New', Courier, monospace;
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* Hide scrollbars but keep scroll functionality */
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+/* For Firefox - hide scrollbar */
+* {
+  scrollbar-width: none;
+}
+
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+
+.animate-accordion-down {
+  animation: accordion-down 0.2s ease-out;
+}
+
+.animate-accordion-up {
+  animation: accordion-up 0.2s ease-out;
+}
+
+/* 3D border effect - light mode */
+.border-3d {
+  border-width: 1px;
+  border-style: solid;
+  border-top-color: white;
+  border-right-color: white;
+  border-bottom-color: #666666;
+  border-left-color: #666666;
+}
+
+/* 3D border effect - dark mode - same style: top/right light, bottom/left dark */
+[data-theme="dark"] .border-3d {
+  border-top-color: #f5e6d0;
+  border-right-color: #f5e6d0;
+  border-bottom-color: #5a4a3a;
+  border-left-color: #5a4a3a;
+}
+
+/* Now Playing card styles */
+.now-playing-card {
+  background-color: #fffde7;
+  border: 1px solid #a09890;
+}
+
+.now-playing-header {
+  background-color: #fff9c4;
+  border-bottom: 1px solid #f0b0b0;
+}
+
+.now-playing-text {
+  color: #3a3632;
+}
+
+/* Connect card styles */
+.connect-card {
+  background-color: #fffde7;
+  border: 1px solid #a09890;
+}
+
+.connect-header {
+  background-color: #fff9c4;
+  border-bottom: 1px solid #f0b0b0;
+}
+
+.connect-link {
+  border-bottom: 1px solid #f0b0b0;
+}
+
+.connect-link:last-child {
+  border-bottom: none;
+}
+
+.connect-text {
+  color: #3a3632;
+}
+
+/* Dark mode - very light blue Now Playing and Connect cards */
+[data-theme="dark"] .now-playing-card {
+  background-color: #e8f4fc;
+  border: 1px solid #a09890;
+}
+
+[data-theme="dark"] .now-playing-header {
+  background-color: #d4ebf8;
+  border-bottom: 1px solid #b8d4e8;
+}
+
+[data-theme="dark"] .now-playing-text {
+  color: #1a1a1a;
+}
+
+/* Dark mode Now Playing icon and text - black */
+[data-theme="dark"] .now-playing-header svg,
+[data-theme="dark"] .now-playing-header span {
+  color: #1a1a1a !important;
+}
+
+[data-theme="dark"] .connect-card {
+  background-color: #e8f4fc;
+  border: 1px solid #a09890;
+}
+
+[data-theme="dark"] .connect-header {
+  background-color: #d4ebf8;
+  border-bottom: 1px solid #b8d4e8;
+}
+
+[data-theme="dark"] .connect-link {
+  border-bottom: 1px solid #b8d4e8;
+}
+
+[data-theme="dark"] .connect-text {
+  color: #1a1a1a;
+}
+
+/* Dark mode Connect icon and text - black */
+[data-theme="dark"] .connect-header svg,
+[data-theme="dark"] .connect-header span {
+  color: #1a1a1a !important;
+}
+
+/* Admin button in dark mode - white text for visibility */
+[data-theme="dark"] .admin-button,
+[data-theme="dark"] .admin-button * {
+  color: #ffffff !important;
+}
+
+/* Dark mode - inner card elements should be very light cream #FFF8E7 with dark text */
+[data-theme="dark"] .inner-card-grey {
+  background-color: #FFF8E7 !important;
+  color: #3a3632 !important;
+}
+
+/* Dark mode - muted areas use dark brown #8C5626 with white text */
+[data-theme="dark"] .inner-card-grey-muted {
+  background-color: #8C5626 !important;
+  color: #ffffff !important;
+}
+
+/* Dark mode - outer card backgrounds should be light cream #E1CFC5 */
+[data-theme="dark"] .outer-card-bg {
+  background-color: #E1CFC5 !important;
+}
+
+/* Ensure text in muted areas is readable in dark mode */
+[data-theme="dark"] .inner-card-grey-muted span,
+[data-theme="dark"] .inner-card-grey-muted .text-muted-foreground {
+  color: #ffffff !important;
+}
+
+/* Dark mode - divider boxes should be brown #8C5626 */
+[data-theme="dark"] .divider-box {
+  background-color: #8C5626 !important;
+  color: #ffffff !important;
+}
