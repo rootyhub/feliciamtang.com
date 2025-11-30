@@ -220,9 +220,13 @@ export default function AdminPage() {
 
   const handleDeletePage = async (id: string) => {
     if (confirm("Are you sure you want to delete this page?")) {
-      await deletePage(id);
-      const pagesData = await getPages();
-      setPages(pagesData);
+      const success = await deletePage(id);
+      if (success) {
+        const pagesData = await getPages();
+        setPages(pagesData);
+      } else {
+        alert("Failed to delete page. Please try again.");
+      }
     }
   };
 
@@ -785,6 +789,32 @@ export default function AdminPage() {
                                           className="flex min-h-[200px] w-full border-2 border-border bg-background px-3 py-2 text-xs sm:text-sm"
                                         />
                                       </div>
+
+                                      <div className="space-y-2">
+                                        <Label>Additional Images {isUploading && <span className="text-muted-foreground">(uploading...)</span>}</Label>
+                                        <Input
+                                          type="file"
+                                          accept="image/*"
+                                          onChange={(e) => handleImageUpload(e, false)}
+                                          disabled={isUploading}
+                                        />
+                                        {newPage.images.length > 0 && (
+                                          <div className="flex flex-wrap gap-2 mt-2">
+                                            {newPage.images.map((img, idx) => (
+                                              <div key={idx} className="relative">
+                                                <img src={img} alt={`Image ${idx + 1}`} className="h-20 w-20 object-cover border border-border" />
+                                                <button
+                                                  type="button"
+                                                  onClick={() => handleRemoveImage(idx)}
+                                                  className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground p-1 border border-border"
+                                                >
+                                                  <X className="h-3 w-3" />
+                                                </button>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        )}
+                                      </div>
                                       
                                       <div className="flex items-center space-x-2">
                                         <Checkbox 
@@ -806,7 +836,7 @@ export default function AdminPage() {
                                     }}>
                                       Cancel
                                     </Button>
-                                    <Button onClick={handleEditPage}>Save Changes</Button>
+                                    <Button onClick={handleEditPage} disabled={isUploading}>Save Changes</Button>
                                   </DialogFooter>
                                 </DialogContent>
                               </Dialog>
