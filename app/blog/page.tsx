@@ -2,15 +2,17 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { getBlogPosts } from "@/lib/blog";
-import { BlogPost } from "@/lib/types";
+import { getFeaturedPages } from "@/lib/pages";
+import { Page } from "@/lib/types";
 import { Calendar, ArrowLeft } from "lucide-react";
 
 export default function BlogPage() {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [pages, setPages] = useState<Page[]>([]);
 
   useEffect(() => {
-    setPosts(getBlogPosts());
+    // Get featured pages that have slugs (these are the "blog" posts)
+    const featuredPages = getFeaturedPages().filter(p => p.slug && p.published !== false);
+    setPages(featuredPages);
   }, []);
 
   return (
@@ -26,23 +28,24 @@ export default function BlogPage() {
           </Link>
           
           <h1 className="mb-8 text-4xl font-semibold tracking-tight">
-            Blog
+            Pages
           </h1>
           <div className="space-y-6">
-            {posts.length === 0 ? (
-              <p className="text-muted-foreground">No blog posts yet.</p>
+            {pages.length === 0 ? (
+              <p className="text-muted-foreground">No pages yet.</p>
             ) : (
-              posts.map((post) => (
+              pages.map((page) => (
                 <Link
-                  key={post.slug}
-                  href={`/blog/${post.slug}`}
+                  key={page.id}
+                  href={page.externalUrl || `/blog/${page.slug}`}
+                  target={page.externalUrl ? "_blank" : undefined}
                   className="group block rounded-2xl border border-border bg-card overflow-hidden transition-all hover:border-primary/50 hover:bg-muted/50"
                 >
-                  {post.coverImage && (
+                  {page.headingImage && (
                     <div className="w-full h-48 overflow-hidden">
                       <img
-                        src={post.coverImage}
-                        alt={post.title}
+                        src={page.headingImage}
+                        alt={page.title}
                         className="w-full h-full object-cover transition-transform group-hover:scale-105"
                       />
                     </div>
@@ -51,7 +54,7 @@ export default function BlogPage() {
                     <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
                       <Calendar className="h-4 w-4" />
                       <time>
-                        {new Date(post.date).toLocaleDateString("en-US", {
+                        {new Date(page.createdAt).toLocaleDateString("en-US", {
                           year: "numeric",
                           month: "long",
                           day: "numeric",
@@ -59,11 +62,11 @@ export default function BlogPage() {
                       </time>
                     </div>
                     <h2 className="mb-3 text-2xl font-semibold transition-colors group-hover:text-primary">
-                      {post.title}
+                      {page.title}
                     </h2>
-                    {post.excerpt && (
+                    {page.excerpt && (
                       <p className="text-muted-foreground leading-relaxed">
-                        {post.excerpt}
+                        {page.excerpt}
                       </p>
                     )}
                   </div>

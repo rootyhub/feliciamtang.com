@@ -27,27 +27,15 @@ export interface PendingLog {
 export interface Page {
   id: string;
   title: string;
+  slug?: string; // URL-friendly slug
   headingImage?: string;
   body: string;
   images: string[];
   createdAt: Date;
   isFeatured?: boolean;
-  externalUrl?: string; // Optional external link for blog posts, etc.
-}
-
-export interface BlogPost {
-  id: string;
-  slug: string;
-  title: string;
-  content: string;
-  excerpt?: string;
-  coverImage?: string;
-  images: string[]; // Gallery images
-  date: string;
-  published: boolean;
-  // UI Configuration
+  externalUrl?: string; // Optional external link
+  // Display options
   layout?: 'default' | 'gallery' | 'photo-journal';
-  backgroundColor?: string;
-  textColor?: string;
-  fontFamily?: string;
+  published?: boolean;
+  excerpt?: string;
 }

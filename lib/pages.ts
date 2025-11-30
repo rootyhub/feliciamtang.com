@@ -10,30 +10,40 @@ const initialPages: Page[] = [
   {
     id: "feat-1",
     title: "Career related stuff",
+    slug: "career",
     headingImage: "/careerstuff.jpg",
     body: "Career related content and projects.",
     images: [],
     createdAt: new Date(),
     isFeatured: true,
+    layout: "default",
+    published: true,
   },
   {
     id: "feat-2",
     title: "Touched by Magic",
+    slug: "touched-by-magic",
     headingImage: "/touchedbymagic.webp",
     body: "Friendship is magic - a blog post about meaningful connections.",
     images: [],
     createdAt: new Date(),
     isFeatured: true,
     externalUrl: "https://open.substack.com/pub/capitolcitizen/p/friendship-is-magic?r=2whac9&utm_campaign=post&utm_medium=web",
+    layout: "default",
+    published: true,
   },
   {
     id: "feat-3",
     title: "My kittens",
+    slug: "my-kittens",
     headingImage: "/mykittens.jpg",
-    body: "Photos and stories about my adorable kittens.",
+    body: "Photos and stories about my adorable kittens! 🐱",
+    excerpt: "Meet my adorable fur babies!",
     images: [],
     createdAt: new Date(),
     isFeatured: true,
+    layout: "gallery",
+    published: true,
   },
   // Regular navigation pages
   {
@@ -174,7 +184,7 @@ const initialPages: Page[] = [
 ];
 
 // Version for pages data - increment to force refresh
-const PAGES_VERSION = 4;
+const PAGES_VERSION = 5;
 
 // Load pages from localStorage or use initial data
 const loadPagesFromStorage = (): Page[] => {
@@ -228,6 +238,17 @@ export const getFeaturedPages = (): Page[] => {
 
 export const getNavPages = (): Page[] => {
   return pages.filter((p) => !p.isFeatured);
+};
+
+export const getPageBySlug = (slug: string): Page | null => {
+  if (isBrowser) {
+    pages = loadPagesFromStorage();
+  }
+  return pages.find((p) => p.slug === slug) || null;
+};
+
+export const getPublishedPages = (): Page[] => {
+  return pages.filter((p) => p.published !== false);
 };
 
 export const addPage = (page: Omit<Page, "id" | "createdAt">): Page => {
