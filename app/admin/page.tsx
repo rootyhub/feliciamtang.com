@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Edit2, Trash2, ArrowLeft, Upload, X, ChevronUp, ChevronDown, Image } from "lucide-react";
+import { Plus, Edit2, Trash2, ArrowLeft, Upload, X, ChevronUp, ChevronDown, Image, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -34,6 +34,7 @@ import {
   updatePage,
   deletePage,
 } from "@/lib/db/pages";
+import { uploadBase64Image } from "@/lib/db/storage";
 import { checkAdmin } from "@/lib/auth";
 import { Habit, Page } from "@/lib/types";
 import Link from "next/link";
@@ -223,16 +224,32 @@ export default function AdminPage() {
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, isHeading: boolean = false) => {
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, isHeading: boolean = false) => {
     const file = e.target.files?.[0];
     if (file) {
+      setIsUploading(true);
+      
+      // First read as base64
       const reader = new FileReader();
-      reader.onloadend = () => {
-        if (isHeading) {
-          setNewPage({ ...newPage, headingImage: reader.result as string });
+      reader.onloadend = async () => {
+        const base64 = reader.result as string;
+        
+        // Upload to Supabase Storage and get URL
+        const imageUrl = await uploadBase64Image(base64, isHeading ? 'headings' : 'gallery');
+        
+        if (imageUrl) {
+          if (isHeading) {
+            setNewPage({ ...newPage, headingImage: imageUrl });
+          } else {
+            setNewPage({ ...newPage, images: [...newPage.images, imageUrl] });
+          }
         } else {
-          setNewPage({ ...newPage, images: [...newPage.images, reader.result as string] });
+          alert('Failed to upload image. Please try again.');
         }
+        
+        setIsUploading(false);
       };
       reader.readAsDataURL(file);
     }
@@ -588,11 +605,12 @@ export default function AdminPage() {
                           </div>
 
                           <div className="space-y-2">
-                            <Label>Additional Images</Label>
+                            <Label>Additional Images {isUploading && <span className="text-muted-foreground">(uploading...)</span>}</Label>
                             <Input
                               type="file"
                               accept="image/*"
                               onChange={(e) => handleImageUpload(e, false)}
+                              disabled={isUploading}
                             />
                             {newPage.images.length > 0 && (
                               <div className="flex flex-wrap gap-2 mt-2">
