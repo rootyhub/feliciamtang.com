@@ -33,6 +33,8 @@ import {
   addPage,
   updatePage,
   deletePage,
+  movePageUp,
+  movePageDown,
 } from "@/lib/db/pages";
 import { uploadBase64Image } from "@/lib/db/storage";
 import { checkAdmin } from "@/lib/auth";
@@ -659,9 +661,38 @@ export default function AdminPage() {
                       {pages.filter(p => p.isFeatured).length === 0 ? (
                         <p className="text-center py-4 text-muted-foreground text-sm">No featured pages yet.</p>
                       ) : (
-                        pages.filter(p => p.isFeatured).map((page) => (
+                        pages.filter(p => p.isFeatured).map((page, index, arr) => (
                           <div key={page.id} className="flex items-center justify-between border border-border bg-muted/50 p-3">
                             <div className="flex items-center gap-3">
+                              {/* Sort buttons */}
+                              <div className="flex flex-col gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6"
+                                  disabled={index === 0}
+                                  onClick={async () => {
+                                    await movePageUp(page.id);
+                                    const pagesData = await getPages();
+                                    setPages(pagesData);
+                                  }}
+                                >
+                                  <ChevronUp className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6"
+                                  disabled={index === arr.length - 1}
+                                  onClick={async () => {
+                                    await movePageDown(page.id);
+                                    const pagesData = await getPages();
+                                    setPages(pagesData);
+                                  }}
+                                >
+                                  <ChevronDown className="h-3 w-3" />
+                                </Button>
+                              </div>
                               {page.headingImage && (
                                 <img src={page.headingImage} alt={page.title} className="w-16 h-16 object-cover border border-border" />
                               )}

@@ -40,6 +40,7 @@ export async function getPages(): Promise<Page[]> {
   const { data, error } = await supabase
     .from('pages')
     .select('*')
+    .order('order_index', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false });
   
   if (error) {
@@ -60,6 +61,7 @@ export async function getFeaturedPages(): Promise<Page[]> {
     .select('*')
     .eq('is_featured', true)
     .eq('published', true)
+    .order('order_index', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false });
   
   if (error) {
@@ -80,6 +82,7 @@ export async function getNavPages(): Promise<Page[]> {
     .select('*')
     .eq('is_featured', false)
     .eq('published', true)
+    .order('order_index', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false });
   
   if (error) {
@@ -165,5 +168,81 @@ export async function deletePage(id: string): Promise<boolean> {
   }
   
   return true;
+}
+
+export async function movePageUp(id: string): Promise<void> {
+  if (!isSupabaseConfigured) {
+    return;
+  }
+
+  // Get all featured pages ordered by order_index
+  const { data: pages } = await supabase
+    .from('pages')
+    .select('id, order_index, is_featured')
+    .order('order_index', { ascending: true });
+
+  if (!pages) return;
+
+  const index = pages.findIndex(p => p.id === id);
+  if (index <= 0) return;
+
+  // Find the previous page with the same is_featured status
+  const currentPage = pages[index];
+  let prevIndex = index - 1;
+  while (prevIndex >= 0 && pages[prevIndex].is_featured !== currentPage.is_featured) {
+    prevIndex--;
+  }
+  if (prevIndex < 0) return;
+
+  const prevPage = pages[prevIndex];
+
+  // Swap order indices
+  await supabase
+    .from('pages')
+    .update({ order_index: prevPage.order_index })
+    .eq('id', currentPage.id);
+
+  await supabase
+    .from('pages')
+    .update({ order_index: currentPage.order_index })
+    .eq('id', prevPage.id);
+}
+
+export async function movePageDown(id: string): Promise<void> {
+  if (!isSupabaseConfigured) {
+    return;
+  }
+
+  // Get all pages ordered by order_index
+  const { data: pages } = await supabase
+    .from('pages')
+    .select('id, order_index, is_featured')
+    .order('order_index', { ascending: true });
+
+  if (!pages) return;
+
+  const index = pages.findIndex(p => p.id === id);
+  if (index < 0 || index >= pages.length - 1) return;
+
+  // Find the next page with the same is_featured status
+  const currentPage = pages[index];
+  let nextIndex = index + 1;
+  while (nextIndex < pages.length && pages[nextIndex].is_featured !== currentPage.is_featured) {
+    nextIndex++;
+  }
+  if (nextIndex >= pages.length) return;
+
+  const nextPage = pages[nextIndex];
+
+  // Swap order indices
+  await supabase
+    .from('pages')
+    .update({ order_index: nextPage.order_index })
+    .eq('id', currentPage.id);
+
+  await supabase
+    .from('pages')
+    .update({ order_index: currentPage.order_index })
+    .eq('id', nextPage.id);
 }
 

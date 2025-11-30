@@ -1,7 +1,7 @@
 // Admin authentication - Username/Password based
 // Allowed admin credentials
 const ADMIN_USERNAME = "feliciamtang";
-const ADMIN_PASSWORD = "admin";
+const ADMIN_PASSWORD = "oiAGHSfoeilsdgnj1-1";
 
 let isAdmin = false;
 
