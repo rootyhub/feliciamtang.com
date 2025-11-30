@@ -35,7 +35,7 @@ export default function BlogPage() {
               <p className="text-muted-foreground">No pages yet.</p>
             ) : (
               pages.map((page) => (
-                <Link
+              <Link
                   key={page.id}
                   href={page.externalUrl || `/blog/${page.slug}`}
                   target={page.externalUrl ? "_blank" : undefined}
@@ -51,26 +51,26 @@ export default function BlogPage() {
                     </div>
                   )}
                   <div className="p-6 md:p-8">
-                    <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
-                      <time>
+                <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
+                  <Calendar className="h-4 w-4" />
+                  <time>
                         {new Date(page.createdAt).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
-                      </time>
-                    </div>
-                    <h2 className="mb-3 text-2xl font-semibold transition-colors group-hover:text-primary">
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </time>
+                </div>
+                <h2 className="mb-3 text-2xl font-semibold transition-colors group-hover:text-primary">
                       {page.title}
-                    </h2>
+                </h2>
                     {page.excerpt && (
-                      <p className="text-muted-foreground leading-relaxed">
+                  <p className="text-muted-foreground leading-relaxed">
                         {page.excerpt}
-                      </p>
-                    )}
+                  </p>
+                )}
                   </div>
-                </Link>
+              </Link>
               ))
             )}
           </div>

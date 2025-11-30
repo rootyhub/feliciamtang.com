@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Edit2, Trash2, ArrowLeft, Upload, X, ChevronUp, ChevronDown, Image, Loader2 } from "lucide-react";
+import { Plus, Edit2, Trash2, ArrowLeft, Upload, X, ChevronUp, ChevronDown, Image, Loader2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -35,6 +35,7 @@ import {
   deletePage,
   movePageUp,
   movePageDown,
+  togglePageVisibility,
 } from "@/lib/db/pages";
 import { uploadBase64Image } from "@/lib/db/storage";
 import { checkAdmin } from "@/lib/auth";
@@ -698,10 +699,13 @@ export default function AdminPage() {
                                 </Button>
                               </div>
                               {page.headingImage && (
-                                <img src={page.headingImage} alt={page.title} className="w-16 h-16 object-cover border border-border" />
+                                <img src={page.headingImage} alt={page.title} className={`w-16 h-16 object-cover border border-border ${!page.published ? 'opacity-50' : ''}`} />
                               )}
                               <div>
-                                <p className="font-medium">{page.title}</p>
+                                <p className={`font-medium ${!page.published ? 'text-muted-foreground line-through' : ''}`}>
+                                  {page.title}
+                                  {!page.published && <span className="ml-2 text-xs">(hidden)</span>}
+                                </p>
                                 <p className="text-xs text-muted-foreground">
                                   {new Date(page.createdAt).toLocaleDateString()}
                                 </p>
@@ -840,6 +844,18 @@ export default function AdminPage() {
                                   </DialogFooter>
                                 </DialogContent>
                               </Dialog>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                title={page.published ? "Hide page" : "Show page"}
+                                onClick={async () => {
+                                  await togglePageVisibility(page.id);
+                                  const pagesData = await getPages();
+                                  setPages(pagesData);
+                                }}
+                              >
+                                {page.published ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4 text-muted-foreground" />}
+                              </Button>
                               <Button variant="ghost" size="icon" onClick={() => handleDeletePage(page.id)}>
                                 <Trash2 className="h-4 w-4 text-destructive" />
                               </Button>
@@ -860,7 +876,10 @@ export default function AdminPage() {
                         pages.filter(p => !p.isFeatured).map((page) => (
                           <div key={page.id} className="flex items-center justify-between border border-border bg-muted/50 p-3">
                           <div>
-                            <p className="font-medium">{page.title}</p>
+                            <p className={`font-medium ${!page.published ? 'text-muted-foreground line-through' : ''}`}>
+                              {page.title}
+                              {!page.published && <span className="ml-2 text-xs">(hidden)</span>}
+                            </p>
                             <p className="text-xs text-muted-foreground">
                               {new Date(page.createdAt).toLocaleDateString()}
                             </p>
@@ -1000,6 +1019,18 @@ export default function AdminPage() {
                                 </DialogFooter>
                               </DialogContent>
                             </Dialog>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              title={page.published ? "Hide page" : "Show page"}
+                              onClick={async () => {
+                                await togglePageVisibility(page.id);
+                                const pagesData = await getPages();
+                                setPages(pagesData);
+                              }}
+                            >
+                              {page.published ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4 text-muted-foreground" />}
+                            </Button>
                             <Button
                               variant="ghost"
                               size="icon"

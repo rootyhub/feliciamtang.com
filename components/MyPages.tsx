@@ -65,7 +65,7 @@ export default function MyPages() {
     };
     loadData();
   }, []);
-  
+
   const handleSubmitNote = async () => {
     if (!noteContent.trim()) return;
     

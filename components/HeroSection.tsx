@@ -65,8 +65,8 @@ export default function HeroSection() {
     setIsSaving(true);
     const success = await updateCurrentSong(editForm);
     if (success) {
-      setSong(editForm);
-      setIsEditOpen(false);
+    setSong(editForm);
+    setIsEditOpen(false);
     }
     setIsSaving(false);
   };
@@ -345,8 +345,8 @@ export default function HeroSection() {
               <DialogTrigger asChild>
                 <button
                   className="flex items-center gap-1.5 px-2 py-0.5 hover:opacity-80 transition-opacity w-full text-left"
-                >
-                  <img src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg" alt="Gmail" className="w-3 h-3 flex-shrink-0" />
+            >
+              <img src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg" alt="Gmail" className="w-3 h-3 flex-shrink-0" />
                   <span className="text-[10px] sm:text-xs connect-text">Email</span>
                 </button>
               </DialogTrigger>

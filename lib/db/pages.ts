@@ -175,79 +175,115 @@ export async function deletePage(id: string): Promise<boolean> {
   return true;
 }
 
-export async function movePageUp(id: string): Promise<void> {
+export async function movePageUp(id: string): Promise<boolean> {
   if (!isSupabaseConfigured) {
-    return;
+    return false;
   }
 
-  // Get all featured pages ordered by order_index
+  // Get the current page to know if it's featured
+  const { data: currentPageData } = await supabase
+    .from('pages')
+    .select('id, order_index, is_featured')
+    .eq('id', id)
+    .single();
+
+  if (!currentPageData) return false;
+
+  // Get all pages with the same is_featured status, ordered by order_index
   const { data: pages } = await supabase
     .from('pages')
     .select('id, order_index, is_featured')
-    .order('order_index', { ascending: true });
+    .eq('is_featured', currentPageData.is_featured)
+    .order('order_index', { ascending: true, nullsFirst: false });
 
-  if (!pages) return;
+  if (!pages || pages.length < 2) return false;
 
   const index = pages.findIndex(p => p.id === id);
-  if (index <= 0) return;
+  if (index <= 0) return false;
 
-  // Find the previous page with the same is_featured status
   const currentPage = pages[index];
-  let prevIndex = index - 1;
-  while (prevIndex >= 0 && pages[prevIndex].is_featured !== currentPage.is_featured) {
-    prevIndex--;
-  }
-  if (prevIndex < 0) return;
+  const prevPage = pages[index - 1];
 
-  const prevPage = pages[prevIndex];
+  // Use unique temporary values to avoid conflicts
+  const tempIndex = -999;
+  const currentOrder = currentPage.order_index ?? index;
+  const prevOrder = prevPage.order_index ?? (index - 1);
 
-  // Swap order indices
-  await supabase
-    .from('pages')
-    .update({ order_index: prevPage.order_index })
-    .eq('id', currentPage.id);
+  // Swap order indices using a temp value
+  await supabase.from('pages').update({ order_index: tempIndex }).eq('id', currentPage.id);
+  await supabase.from('pages').update({ order_index: currentOrder }).eq('id', prevPage.id);
+  await supabase.from('pages').update({ order_index: prevOrder }).eq('id', currentPage.id);
 
-  await supabase
-    .from('pages')
-    .update({ order_index: currentPage.order_index })
-    .eq('id', prevPage.id);
+  return true;
 }
 
-export async function movePageDown(id: string): Promise<void> {
+export async function movePageDown(id: string): Promise<boolean> {
   if (!isSupabaseConfigured) {
-    return;
+    return false;
   }
 
-  // Get all pages ordered by order_index
+  // Get the current page to know if it's featured
+  const { data: currentPageData } = await supabase
+    .from('pages')
+    .select('id, order_index, is_featured')
+    .eq('id', id)
+    .single();
+
+  if (!currentPageData) return false;
+
+  // Get all pages with the same is_featured status, ordered by order_index
   const { data: pages } = await supabase
     .from('pages')
     .select('id, order_index, is_featured')
-    .order('order_index', { ascending: true });
+    .eq('is_featured', currentPageData.is_featured)
+    .order('order_index', { ascending: true, nullsFirst: false });
 
-  if (!pages) return;
+  if (!pages || pages.length < 2) return false;
 
   const index = pages.findIndex(p => p.id === id);
-  if (index < 0 || index >= pages.length - 1) return;
+  if (index < 0 || index >= pages.length - 1) return false;
 
-  // Find the next page with the same is_featured status
   const currentPage = pages[index];
-  let nextIndex = index + 1;
-  while (nextIndex < pages.length && pages[nextIndex].is_featured !== currentPage.is_featured) {
-    nextIndex++;
+  const nextPage = pages[index + 1];
+
+  // Use unique temporary values to avoid conflicts
+  const tempIndex = -999;
+  const currentOrder = currentPage.order_index ?? index;
+  const nextOrder = nextPage.order_index ?? (index + 1);
+
+  // Swap order indices using a temp value
+  await supabase.from('pages').update({ order_index: tempIndex }).eq('id', currentPage.id);
+  await supabase.from('pages').update({ order_index: currentOrder }).eq('id', nextPage.id);
+  await supabase.from('pages').update({ order_index: nextOrder }).eq('id', currentPage.id);
+
+  return true;
+}
+
+export async function togglePageVisibility(id: string): Promise<boolean> {
+  if (!isSupabaseConfigured) {
+    return false;
   }
-  if (nextIndex >= pages.length) return;
 
-  const nextPage = pages[nextIndex];
-
-  // Swap order indices
-  await supabase
+  // Get current published status
+  const { data: page } = await supabase
     .from('pages')
-    .update({ order_index: nextPage.order_index })
-    .eq('id', currentPage.id);
+    .select('published')
+    .eq('id', id)
+    .single();
 
-  await supabase
+  if (!page) return false;
+
+  // Toggle it
+  const { error } = await supabase
     .from('pages')
-    .update({ order_index: currentPage.order_index })
-    .eq('id', nextPage.id);
+    .update({ published: !page.published })
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error toggling page visibility:', error);
+    return false;
+  }
+
+  return true;
 }
 

@@ -31,7 +31,7 @@ export default function ProgressViewer() {
   const getAllHabitsFlat = (habitsList: Habit[]): Habit[] => {
     const flat: Habit[] = [];
     habitsList.forEach((habit) => {
-      flat.push(habit);
+        flat.push(habit);
       if (habit.subHabits && habit.subHabits.length > 0) {
         habit.subHabits.forEach((sub) => flat.push(sub));
       }
@@ -80,19 +80,19 @@ export default function ProgressViewer() {
       let positiveTotal = 0;
       let negativeCompleted = 0;
       let negativeTotal = 0;
-      
-      positiveHabits.forEach((habit) => {
-        positiveTotal++;
+        
+        positiveHabits.forEach((habit) => {
+          positiveTotal++;
         if (isHabitCompletedForDate(habit, dateStr)) {
-          positiveCompleted++;
-        }
-      });
-      
-      negativeHabits.forEach((habit) => {
-        negativeTotal++;
+            positiveCompleted++;
+          }
+        });
+        
+        negativeHabits.forEach((habit) => {
+          negativeTotal++;
         if (isHabitCompletedForDate(habit, dateStr)) {
-          negativeCompleted++;
-        }
+            negativeCompleted++;
+          }
       });
 
       const positiveRate = positiveTotal > 0 ? (positiveCompleted / positiveTotal) * 100 : 0;
@@ -245,29 +245,29 @@ export default function ProgressViewer() {
                             className="relative h-full cursor-pointer hover:opacity-80 transition-opacity flex-shrink-0"
                             style={{ width: '4px' }}
                             onClick={() => setSelectedDate(dayData.day)}
-                          >
-                            {/* Positive bar - grows UP from center (50%) */}
+                      >
+                        {/* Positive bar - grows UP from center (50%) */}
                             {dayData.positiveRate > 0 && (
-                              <motion.div
-                                initial={{ height: 0 }}
+                          <motion.div
+                            initial={{ height: 0 }}
                                 animate={{ height: `${(dayData.positiveRate / 100) * 50}%` }}
                                 transition={{ duration: 0.3, delay: index * 0.001 }}
                                 className="absolute left-0 right-0 bg-green-500 pointer-events-none"
-                                style={{ bottom: '50%' }}
-                              />
-                            )}
-                            
-                            {/* Negative bar - grows DOWN from center (50%) */}
+                            style={{ bottom: '50%' }}
+                          />
+                        )}
+                        
+                        {/* Negative bar - grows DOWN from center (50%) */}
                             {dayData.negativeRate > 0 && (
-                              <motion.div
-                                initial={{ height: 0 }}
+                          <motion.div
+                            initial={{ height: 0 }}
                                 animate={{ height: `${(dayData.negativeRate / 100) * 50}%` }}
                                 transition={{ duration: 0.3, delay: index * 0.001 }}
                                 className="absolute left-0 right-0 bg-red-500 pointer-events-none"
-                                style={{ top: '50%' }}
-                              />
-                            )}
-                            
+                            style={{ top: '50%' }}
+                          />
+                        )}
+                        
                             {/* Today marker */}
                             {isToday && (
                               <div className="absolute inset-0 bg-primary opacity-30 z-20 pointer-events-none" />
@@ -300,8 +300,8 @@ export default function ProgressViewer() {
                               <div className="text-[10px] text-muted-foreground">
                                 No habits logged
                               </div>
-                            )}
-                          </div>
+                        )}
+                      </div>
                         </PopoverContent>
                       </Popover>
                     );
@@ -347,31 +347,31 @@ export default function ProgressViewer() {
                           <button
                             className="flex-1 relative h-full cursor-pointer hover:opacity-80 transition-opacity"
                             onClick={() => setSelectedDate(day.day)}
-                          >
-                            {/* Positive bar - grows UP from center (50%) */}
-                            {day.positiveRate > 0 && (
-                              <motion.div
-                                initial={{ height: 0 }}
-                                animate={{ height: `${(day.positiveRate / 100) * 50}%` }}
-                                transition={{ duration: 0.1, delay: index * 0.005 }}
+                      >
+                        {/* Positive bar - grows UP from center (50%) */}
+                        {day.positiveRate > 0 && (
+                          <motion.div
+                            initial={{ height: 0 }}
+                            animate={{ height: `${(day.positiveRate / 100) * 50}%` }}
+                            transition={{ duration: 0.1, delay: index * 0.005 }}
                                 className="absolute left-0 right-0 bg-green-500 pointer-events-none"
-                                style={{ bottom: '50%' }}
-                              />
-                            )}
-                            
-                            {/* Negative bar - grows DOWN from center (50%) */}
-                            {day.negativeRate > 0 && (
-                              <motion.div
-                                initial={{ height: 0 }}
-                                animate={{ height: `${(day.negativeRate / 100) * 50}%` }}
-                                transition={{ duration: 0.1, delay: index * 0.005 }}
+                            style={{ bottom: '50%' }}
+                          />
+                        )}
+                        
+                        {/* Negative bar - grows DOWN from center (50%) */}
+                        {day.negativeRate > 0 && (
+                          <motion.div
+                            initial={{ height: 0 }}
+                            animate={{ height: `${(day.negativeRate / 100) * 50}%` }}
+                            transition={{ duration: 0.1, delay: index * 0.005 }}
                                 className="absolute left-0 right-0 bg-red-500 pointer-events-none"
-                                style={{ top: '50%' }}
-                              />
-                            )}
-                            
-                            {/* Today marker */}
-                            {isToday && (
+                            style={{ top: '50%' }}
+                          />
+                        )}
+                        
+                        {/* Today marker */}
+                        {isToday && (
                               <div className="absolute inset-0 ring-1 sm:ring-2 ring-primary z-20 pointer-events-none" />
                             )}
                           </button>
@@ -402,8 +402,8 @@ export default function ProgressViewer() {
                               <div className="text-[10px] text-muted-foreground">
                                 No habits logged
                               </div>
-                            )}
-                          </div>
+                        )}
+                      </div>
                         </PopoverContent>
                       </Popover>
                     );

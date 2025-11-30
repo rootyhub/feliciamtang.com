@@ -20,7 +20,7 @@ export default function PageViewPage() {
     const foundPage = getPageBySlug(slug);
     if (foundPage) {
       setPage(foundPage);
-    }
+}
     setLoading(false);
   }, [slug]);
 
@@ -54,7 +54,7 @@ export default function PageViewPage() {
         return "max-w-4xl";
       default:
         return "max-w-3xl";
-    }
+  }
   };
 
   return (
@@ -82,26 +82,26 @@ export default function PageViewPage() {
             )}
 
             <div className="p-6 md:p-8">
-              <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
-                <Calendar className="h-4 w-4" />
-                <time>
+            <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
+              <Calendar className="h-4 w-4" />
+              <time>
                   {new Date(page.createdAt).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </time>
-              </div>
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </time>
+            </div>
 
-              <h1 className="mb-6 text-4xl font-semibold tracking-tight">
+            <h1 className="mb-6 text-4xl font-semibold tracking-tight">
                 {page.title}
-              </h1>
+            </h1>
 
               {/* Content */}
               <div className="prose prose-neutral max-w-none dark:prose-invert prose-headings:font-semibold prose-headings:tracking-tight prose-p:leading-relaxed prose-p:text-muted-foreground prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-strong:text-foreground prose-code:text-primary prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-pre:bg-muted prose-pre:border prose-pre:border-border prose-pre:text-foreground prose-blockquote:border-l-primary prose-blockquote:text-muted-foreground mb-8">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {page.body}
-                </ReactMarkdown>
+              </ReactMarkdown>
               </div>
 
               {/* Photo Gallery */}

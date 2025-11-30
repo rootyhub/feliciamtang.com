@@ -238,7 +238,7 @@ const ensureHabitsHaveLogs = () => {
 
 // Only generate initial data if no logs exist at all
 if (habitLogs.length === 0) {
-  habitLogs = generatePastYearData();
+habitLogs = generatePastYearData();
   saveHabitLogsToStorage(habitLogs);
 } else {
   // Ensure all current habits have logs (for newly added habits)
