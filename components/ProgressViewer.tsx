@@ -287,9 +287,9 @@ export default function ProgressViewer() {
                                 {breakdown.map((item, idx) => (
                                   <div 
                                     key={idx}
-                                    className={`text-[10px] flex items-center gap-1 ${
+                                    className={`flex items-center gap-1 ${
                                       item.isNegative ? "text-red-600" : "text-green-600"
-                                    } ${item.isSubHabit ? "ml-3" : ""}`}
+                                    } ${item.isSubHabit ? "ml-3 text-[8px]" : "text-[10px] font-medium"}`}
                                   >
                                     <span className={`${item.isSubHabit ? "w-1 h-1" : "w-1.5 h-1.5"} rounded-full bg-current flex-shrink-0`} />
                                     <span>{item.habit.name}</span>
@@ -389,9 +389,9 @@ export default function ProgressViewer() {
                                 {breakdown.map((item, idx) => (
                                   <div 
                                     key={idx}
-                                    className={`text-[10px] flex items-center gap-1 ${
+                                    className={`flex items-center gap-1 ${
                                       item.isNegative ? "text-red-600" : "text-green-600"
-                                    } ${item.isSubHabit ? "ml-3" : ""}`}
+                                    } ${item.isSubHabit ? "ml-3 text-[8px]" : "text-[10px] font-medium"}`}
                                   >
                                     <span className={`${item.isSubHabit ? "w-1 h-1" : "w-1.5 h-1.5"} rounded-full bg-current flex-shrink-0`} />
                                     <span>{item.habit.name}</span>

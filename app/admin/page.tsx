@@ -200,16 +200,20 @@ export default function AdminPage() {
   const handleEditPage = async () => {
     if (editingPage) {
       // For regular pages, we use newPage state
+      // Combine existing images with new ones (newPage.images contains all images including existing)
       const pageToUpdate = {
         title: newPage.title || editingPage.title,
         headingImage: newPage.headingImage || editingPage.headingImage,
         body: newPage.body || editingPage.body,
-        images: newPage.images.length > 0 ? newPage.images : editingPage.images,
+        images: newPage.images, // Use newPage.images directly as it's already populated with existing + new
         isFeatured: editingPage.isFeatured,
       };
       
+      console.log('Saving page with images:', pageToUpdate.images);
+      
       if (pageToUpdate.title.trim()) {
-        await updatePage(editingPage.id, pageToUpdate);
+        const result = await updatePage(editingPage.id, pageToUpdate);
+        console.log('Update result:', result);
         const pagesData = await getPages();
         setPages(pagesData);
         setEditingPage(null);
