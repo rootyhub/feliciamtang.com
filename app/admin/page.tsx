@@ -25,7 +25,7 @@ import {
   deleteHabit,
   moveHabitUp,
   moveHabitDown,
-} from "@/lib/habits";
+} from "@/lib/db/habits";
 import {
   getPages,
   getFeaturedPages,
@@ -33,7 +33,7 @@ import {
   addPage,
   updatePage,
   deletePage,
-} from "@/lib/pages";
+} from "@/lib/db/pages";
 import { checkAdmin } from "@/lib/auth";
 import { Habit, Page } from "@/lib/types";
 import Link from "next/link";
@@ -69,11 +69,18 @@ export default function AdminPage() {
       router.push("/login");
       return;
     }
-    setHabits(getHabits());
-    setPages(getPages());
+    const loadData = async () => {
+      const [habitsData, pagesData] = await Promise.all([
+        getHabits(),
+        getPages(),
+      ]);
+      setHabits(habitsData);
+      setPages(pagesData);
+    };
+    loadData();
   }, [router]);
 
-  const handleAddHabit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleAddHabit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const name = formData.get("name") as string;
@@ -84,21 +91,21 @@ export default function AdminPage() {
       : undefined;
 
     if (name.trim()) {
-      addHabit({
+      await addHabit({
         name: name.trim(),
         color: "#22c55e",
         frequency,
         isNegative,
         goal_per_week: goalPerWeek,
-        logs: {},
       });
-      setHabits(getHabits());
+      const habitsData = await getHabits();
+      setHabits(habitsData);
       setIsAddDialogOpen(false);
       e.currentTarget.reset();
     }
   };
 
-  const handleAddSubHabit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleAddSubHabit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!parentHabitForSub) return;
     
@@ -106,28 +113,23 @@ export default function AdminPage() {
     const name = formData.get("name") as string;
 
     if (name.trim()) {
-      const updatedHabit = updateHabit(parentHabitForSub.id, {
-        subHabits: [
-          ...(parentHabitForSub.subHabits || []),
-          {
-            id: `${parentHabitForSub.id}-${Date.now()}`,
-            name: name.trim(),
-            color: parentHabitForSub.color,
-            frequency: parentHabitForSub.frequency,
-            isNegative: parentHabitForSub.isNegative,
-            logs: {},
-            created_at: new Date().toISOString(),
-          },
-        ],
+      // Add sub-habit as a new habit with parentId
+      await addHabit({
+        name: name.trim(),
+        color: parentHabitForSub.color,
+        frequency: parentHabitForSub.frequency,
+        isNegative: parentHabitForSub.isNegative,
+        parentId: parentHabitForSub.id,
       });
-      setHabits(getHabits());
+      const habitsData = await getHabits();
+      setHabits(habitsData);
       setIsAddSubHabitDialogOpen(false);
       setParentHabitForSub(null);
       e.currentTarget.reset();
     }
   };
 
-  const handleEditHabit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleEditHabit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!editingHabit) return;
 
@@ -140,53 +142,58 @@ export default function AdminPage() {
       : undefined;
 
     if (name.trim()) {
-      updateHabit(editingHabit.id, {
+      await updateHabit(editingHabit.id, {
         name: name.trim(),
         color: editingHabit.color,
         frequency,
         isNegative,
         goal_per_week: goalPerWeek,
       });
-      setHabits(getHabits());
+      const habitsData = await getHabits();
+      setHabits(habitsData);
       setIsEditDialogOpen(false);
       setEditingHabit(null);
     }
   };
 
-  const handleDeleteHabit = (id: string) => {
+  const handleDeleteHabit = async (id: string) => {
     if (confirm("Are you sure you want to delete this habit?")) {
-      deleteHabit(id);
-      setHabits(getHabits());
+      await deleteHabit(id);
+      const habitsData = await getHabits();
+      setHabits(habitsData);
     }
   };
 
-  const handleMoveHabitUp = (id: string) => {
-    moveHabitUp(id);
-    setHabits(getHabits());
+  const handleMoveHabitUp = async (id: string) => {
+    await moveHabitUp(id);
+    const habitsData = await getHabits();
+    setHabits(habitsData);
   };
 
-  const handleMoveHabitDown = (id: string) => {
-    moveHabitDown(id);
-    setHabits(getHabits());
+  const handleMoveHabitDown = async (id: string) => {
+    await moveHabitDown(id);
+    const habitsData = await getHabits();
+    setHabits(habitsData);
   };
 
   // Page management functions
-  const handleAddPage = () => {
+  const handleAddPage = async () => {
     if (newPage.title.trim()) {
-      addPage({
+      await addPage({
         title: newPage.title,
         headingImage: newPage.headingImage,
         body: newPage.body,
         images: newPage.images,
         isFeatured: newPage.isFeatured,
       });
-      setPages(getPages());
+      const pagesData = await getPages();
+      setPages(pagesData);
       setNewPage(defaultNewPage);
       setIsAddPageDialogOpen(false);
     }
   };
 
-  const handleEditPage = () => {
+  const handleEditPage = async () => {
     if (editingPage) {
       // For regular pages, we use newPage state
       const pageToUpdate = {
@@ -198,8 +205,9 @@ export default function AdminPage() {
       };
       
       if (pageToUpdate.title.trim()) {
-        updatePage(editingPage.id, pageToUpdate);
-        setPages(getPages());
+        await updatePage(editingPage.id, pageToUpdate);
+        const pagesData = await getPages();
+        setPages(pagesData);
         setEditingPage(null);
         setNewPage(defaultNewPage);
         setIsEditPageDialogOpen(false);
@@ -207,10 +215,11 @@ export default function AdminPage() {
     }
   };
 
-  const handleDeletePage = (id: string) => {
+  const handleDeletePage = async (id: string) => {
     if (confirm("Are you sure you want to delete this page?")) {
-      deletePage(id);
-      setPages(getPages());
+      await deletePage(id);
+      const pagesData = await getPages();
+      setPages(pagesData);
     }
   };
 
@@ -493,15 +502,11 @@ export default function AdminPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => {
-                                // Delete sub-habit
-                                const updatedSubHabits = habit.subHabits?.filter(
-                                  (s) => s.id !== subHabit.id
-                                );
-                                updateHabit(habit.id, {
-                                  subHabits: updatedSubHabits,
-                                });
-                                setHabits(getHabits());
+                              onClick={async () => {
+                                // Delete sub-habit directly
+                                await deleteHabit(subHabit.id);
+                                const habitsData = await getHabits();
+                                setHabits(habitsData);
                               }}
                             >
                               <Trash2 className="h-3 w-3 text-destructive" />

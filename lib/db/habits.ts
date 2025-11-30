@@ -1,5 +1,6 @@
-import { supabase } from '../supabase';
+import { supabase, isSupabaseConfigured } from '../supabase';
 import { Habit, HabitLog } from '../types';
+import * as localHabits from '../habits';
 
 // Convert DB row to Habit type
 const toHabit = (row: any, subHabits?: Habit[]): Habit => ({
@@ -15,6 +16,11 @@ const toHabit = (row: any, subHabits?: Habit[]): Habit => ({
 });
 
 export async function getHabits(): Promise<Habit[]> {
+  // Fall back to localStorage if Supabase isn't configured
+  if (!isSupabaseConfigured) {
+    return localHabits.getHabits();
+  }
+
   // Get all habits
   const { data: allHabits, error } = await supabase
     .from('habits')
@@ -23,7 +29,7 @@ export async function getHabits(): Promise<Habit[]> {
   
   if (error || !allHabits) {
     console.error('Error fetching habits:', error);
-    return [];
+    return localHabits.getHabits(); // Fallback to localStorage
   }
   
   // Get all logs
@@ -68,6 +74,17 @@ export async function addHabit(habit: {
   goal_per_week?: number;
   parentId?: string;
 }): Promise<Habit | null> {
+  if (!isSupabaseConfigured) {
+    return localHabits.addHabit({
+      name: habit.name,
+      color: habit.color || '#22c55e',
+      frequency: habit.frequency || 'daily',
+      isNegative: habit.isNegative || false,
+      goal_per_week: habit.goal_per_week,
+      logs: {},
+    });
+  }
+
   // Get max order index
   const { data: maxOrder } = await supabase
     .from('habits')
@@ -105,6 +122,10 @@ export async function updateHabit(id: string, updates: Partial<{
   isNegative: boolean;
   goal_per_week: number;
 }>): Promise<Habit | null> {
+  if (!isSupabaseConfigured) {
+    return localHabits.updateHabit(id, updates);
+  }
+
   const dbUpdates: any = {};
   if (updates.name !== undefined) dbUpdates.name = updates.name;
   if (updates.color !== undefined) dbUpdates.color = updates.color;
@@ -128,6 +149,11 @@ export async function updateHabit(id: string, updates: Partial<{
 }
 
 export async function deleteHabit(id: string): Promise<boolean> {
+  if (!isSupabaseConfigured) {
+    localHabits.deleteHabit(id);
+    return true;
+  }
+
   const { error } = await supabase
     .from('habits')
     .delete()
@@ -142,6 +168,15 @@ export async function deleteHabit(id: string): Promise<boolean> {
 }
 
 export async function moveHabit(id: string, direction: 'up' | 'down'): Promise<void> {
+  if (!isSupabaseConfigured) {
+    if (direction === 'up') {
+      localHabits.moveHabitUp(id);
+    } else {
+      localHabits.moveHabitDown(id);
+    }
+    return;
+  }
+
   const habits = await getHabits();
   const index = habits.findIndex(h => h.id === id);
   if (index === -1) return;
@@ -164,7 +199,19 @@ export async function moveHabit(id: string, direction: 'up' | 'down'): Promise<v
     .eq('id', swapHabit.id);
 }
 
+export async function moveHabitUp(id: string): Promise<void> {
+  await moveHabit(id, 'up');
+}
+
+export async function moveHabitDown(id: string): Promise<void> {
+  await moveHabit(id, 'down');
+}
+
 export async function getHabitLogs(startDate?: Date, endDate?: Date): Promise<HabitLog[]> {
+  if (!isSupabaseConfigured) {
+    return []; // localStorage version doesn't have separate logs
+  }
+
   let query = supabase.from('habit_logs').select('*');
   
   if (startDate) {
@@ -189,6 +236,12 @@ export async function getHabitLogs(startDate?: Date, endDate?: Date): Promise<Ha
 }
 
 export async function toggleHabitLog(habitId: string, date: string, completed: boolean): Promise<boolean> {
+  if (!isSupabaseConfigured) {
+    // Use localStorage version
+    localHabits.submitPendingLogs([{ habit_id: habitId, date, completed }]);
+    return true;
+  }
+
   if (completed) {
     // Add log
     const { error } = await supabase
@@ -221,9 +274,14 @@ export async function toggleHabitLog(habitId: string, date: string, completed: b
   return true;
 }
 
-export async function submitHabitLogs(logs: { habitId: string; date: string; completed: boolean }[]): Promise<boolean> {
+export async function submitHabitLogs(logs: { habit_id: string; date: string; completed: boolean }[]): Promise<boolean> {
+  if (!isSupabaseConfigured) {
+    localHabits.submitPendingLogs(logs);
+    return true;
+  }
+
   for (const log of logs) {
-    const success = await toggleHabitLog(log.habitId, log.date, log.completed);
+    const success = await toggleHabitLog(log.habit_id, log.date, log.completed);
     if (!success) return false;
   }
   return true;

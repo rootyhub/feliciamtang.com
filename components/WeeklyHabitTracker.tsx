@@ -6,7 +6,7 @@ import { Settings, ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
 import { Card, CardContent, CardHeader } from "./ui/card";
-import { getHabits, submitPendingLogs } from "@/lib/habits";
+import { getHabits, submitHabitLogs } from "@/lib/db/habits";
 import { checkAdmin } from "@/lib/auth";
 import { Habit, PendingLog } from "@/lib/types";
 import Link from "next/link";
@@ -26,11 +26,12 @@ export default function WeeklyHabitTracker() {
 
   useEffect(() => {
     setIsAdmin(checkAdmin());
-    const refreshHabits = () => {
-      setHabits(getHabits());
+    const loadHabits = async () => {
+      const habitsData = await getHabits();
+      setHabits(habitsData);
     };
-    refreshHabits();
-    const interval = setInterval(refreshHabits, 2000);
+    loadHabits();
+    const interval = setInterval(loadHabits, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -74,7 +75,7 @@ export default function WeeklyHabitTracker() {
     });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!isAdmin) return;
     
     setIsSubmitting(true);
@@ -94,10 +95,11 @@ export default function WeeklyHabitTracker() {
       });
     });
 
-    submitPendingLogs(logsToSubmit);
+    await submitHabitLogs(logsToSubmit);
     setPendingLogs(new Map());
     setLastSubmitted(new Date());
-    setHabits(getHabits());
+    const habitsData = await getHabits();
+    setHabits(habitsData);
     setIsSubmitting(false);
   };
 

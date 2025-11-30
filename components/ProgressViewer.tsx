@@ -6,15 +6,26 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader } from "./ui/card";
 import { Button } from "./ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { getHabits } from "@/lib/habits";
+import { getHabits } from "@/lib/db/habits";
 import { Habit } from "@/lib/types";
 
 export default function ProgressViewer() {
   const [viewMode, setViewMode] = useState<"monthly" | "yearly">("yearly");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [habits, setHabits] = useState<Habit[]>([]);
   const today = new Date();
-  const habits = getHabits();
+
+  // Load habits from Supabase
+  useEffect(() => {
+    const loadHabits = async () => {
+      const habitsData = await getHabits();
+      setHabits(habitsData);
+    };
+    loadHabits();
+    const interval = setInterval(loadHabits, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Get all habits including sub-habits (for popover display)
   const getAllHabitsFlat = (habitsList: Habit[]): Habit[] => {

@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Plus, X, ChevronRight, Upload, ExternalLink, Trash2 } from "lucide-react";
-import { deleteNote } from "@/lib/notes";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -18,9 +17,10 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 import { checkAdmin } from "@/lib/auth";
-import { getPages, getFeaturedPages, getNavPages, addPage, deletePage } from "@/lib/pages";
+import { getFeaturedPages, getNavPages, addPage, deletePage } from "@/lib/db/pages";
+import { getNotes, addNote, deleteNote } from "@/lib/db/notes";
 import { Page } from "@/lib/types";
-import { addNote, getNotes, getNotesAsText } from "@/lib/notes";
+import type { Note } from "@/lib/db/notes";
 
 export default function MyPages() {
   const [navPages, setNavPages] = useState<Page[]>([]);
@@ -40,19 +40,30 @@ export default function MyPages() {
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
   const [noteSubmitted, setNoteSubmitted] = useState(false);
   const [showNotesPage, setShowNotesPage] = useState(false);
-  const [notesRefreshKey, setNotesRefreshKey] = useState(0);
+  const [notes, setNotes] = useState<Note[]>([]);
   
-  const handleDeleteNote = (noteId: string) => {
+  const handleDeleteNote = async (noteId: string) => {
     if (confirm("Delete this note?")) {
-      deleteNote(noteId);
-      setNotesRefreshKey((prev) => prev + 1); // Force re-render
+      await deleteNote(noteId);
+      const updatedNotes = await getNotes();
+      setNotes(updatedNotes);
     }
   };
 
   useEffect(() => {
     setIsAdmin(checkAdmin());
-    setNavPages(getNavPages());
-    setFeaturedPages(getFeaturedPages());
+    // Load pages from Supabase
+    const loadData = async () => {
+      const [nav, featured, notesData] = await Promise.all([
+        getNavPages(),
+        getFeaturedPages(),
+        getNotes(),
+      ]);
+      setNavPages(nav);
+      setFeaturedPages(featured);
+      setNotes(notesData);
+    };
+    loadData();
   }, []);
   
   const handleSubmitNote = async () => {
@@ -60,8 +71,8 @@ export default function MyPages() {
     
     setIsSubmittingNote(true);
     try {
-      // Save note locally
-      addNote(noteContent.trim());
+      // Save note to Supabase
+      await addNote(noteContent.trim());
       
       // Send email via API
       await fetch("/api/send-note", {
@@ -72,6 +83,9 @@ export default function MyPages() {
       
       setNoteContent("");
       setNoteSubmitted(true);
+      // Refresh notes
+      const updatedNotes = await getNotes();
+      setNotes(updatedNotes);
       setTimeout(() => {
         setNoteSubmitted(false);
       }, 2000);
@@ -82,23 +96,25 @@ export default function MyPages() {
     }
   };
 
-  const handleAddPage = () => {
+  const handleAddPage = async () => {
     if (newPage.title.trim()) {
-      addPage({
+      await addPage({
         ...newPage,
         isFeatured: true, // Add to featured pages by default
       });
-      setFeaturedPages(getFeaturedPages());
+      const featured = await getFeaturedPages();
+      setFeaturedPages(featured);
       setNewPage({ title: "", headingImage: "", body: "", images: [] });
       setIsDialogOpen(false);
     }
   };
 
-  const handleDeletePage = (id: string) => {
+  const handleDeletePage = async (id: string) => {
     if (confirm("Are you sure you want to delete this page?")) {
-      deletePage(id);
-      setNavPages(getNavPages());
-      setFeaturedPages(getFeaturedPages());
+      await deletePage(id);
+      const [nav, featured] = await Promise.all([getNavPages(), getFeaturedPages()]);
+      setNavPages(nav);
+      setFeaturedPages(featured);
     }
   };
 
@@ -448,14 +464,14 @@ export default function MyPages() {
               Notes left by visitors on your website
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4" key={notesRefreshKey}>
-            {getNotes().length === 0 ? (
+          <div className="space-y-4 py-4">
+            {notes.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">
                 No notes yet. When visitors leave notes, they will appear here.
               </p>
             ) : (
               <div className="space-y-3">
-                {getNotes().map((note) => (
+                {notes.map((note) => (
                   <div key={note.id} className="p-3 bg-muted border-3d relative">
                     <button
                       onClick={() => handleDeleteNote(note.id)}

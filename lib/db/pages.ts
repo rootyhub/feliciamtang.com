@@ -1,5 +1,6 @@
-import { supabase } from '../supabase';
+import { supabase, isSupabaseConfigured } from '../supabase';
 import { Page } from '../types';
+import * as localPages from '../pages';
 
 // Convert DB row to Page type
 const toPage = (row: any): Page => ({
@@ -32,6 +33,10 @@ const toDbRow = (page: Partial<Page>) => ({
 });
 
 export async function getPages(): Promise<Page[]> {
+  if (!isSupabaseConfigured) {
+    return localPages.getPages();
+  }
+
   const { data, error } = await supabase
     .from('pages')
     .select('*')
@@ -39,13 +44,17 @@ export async function getPages(): Promise<Page[]> {
   
   if (error) {
     console.error('Error fetching pages:', error);
-    return [];
+    return localPages.getPages();
   }
   
   return data.map(toPage);
 }
 
 export async function getFeaturedPages(): Promise<Page[]> {
+  if (!isSupabaseConfigured) {
+    return localPages.getFeaturedPages();
+  }
+
   const { data, error } = await supabase
     .from('pages')
     .select('*')
@@ -55,13 +64,17 @@ export async function getFeaturedPages(): Promise<Page[]> {
   
   if (error) {
     console.error('Error fetching featured pages:', error);
-    return [];
+    return localPages.getFeaturedPages();
   }
   
   return data.map(toPage);
 }
 
 export async function getNavPages(): Promise<Page[]> {
+  if (!isSupabaseConfigured) {
+    return localPages.getNavPages();
+  }
+
   const { data, error } = await supabase
     .from('pages')
     .select('*')
@@ -71,13 +84,17 @@ export async function getNavPages(): Promise<Page[]> {
   
   if (error) {
     console.error('Error fetching nav pages:', error);
-    return [];
+    return localPages.getNavPages();
   }
   
   return data.map(toPage);
 }
 
 export async function getPageBySlug(slug: string): Promise<Page | null> {
+  if (!isSupabaseConfigured) {
+    return localPages.getPageBySlug(slug);
+  }
+
   const { data, error } = await supabase
     .from('pages')
     .select('*')
@@ -86,13 +103,17 @@ export async function getPageBySlug(slug: string): Promise<Page | null> {
   
   if (error || !data) {
     console.error('Error fetching page by slug:', error);
-    return null;
+    return localPages.getPageBySlug(slug);
   }
   
   return toPage(data);
 }
 
 export async function addPage(page: Omit<Page, 'id' | 'createdAt'>): Promise<Page | null> {
+  if (!isSupabaseConfigured) {
+    return localPages.addPage(page);
+  }
+
   const { data, error } = await supabase
     .from('pages')
     .insert(toDbRow(page))
@@ -108,6 +129,10 @@ export async function addPage(page: Omit<Page, 'id' | 'createdAt'>): Promise<Pag
 }
 
 export async function updatePage(id: string, updates: Partial<Page>): Promise<Page | null> {
+  if (!isSupabaseConfigured) {
+    return localPages.updatePage(id, updates);
+  }
+
   const { data, error } = await supabase
     .from('pages')
     .update({ ...toDbRow(updates), updated_at: new Date().toISOString() })
@@ -124,6 +149,11 @@ export async function updatePage(id: string, updates: Partial<Page>): Promise<Pa
 }
 
 export async function deletePage(id: string): Promise<boolean> {
+  if (!isSupabaseConfigured) {
+    localPages.deletePage(id);
+    return true;
+  }
+
   const { error } = await supabase
     .from('pages')
     .delete()

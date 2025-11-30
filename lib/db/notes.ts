@@ -1,4 +1,5 @@
-import { supabase } from '../supabase';
+import { supabase, isSupabaseConfigured } from '../supabase';
+import * as localNotes from '../notes';
 
 export interface Note {
   id: string;
@@ -7,6 +8,10 @@ export interface Note {
 }
 
 export async function getNotes(): Promise<Note[]> {
+  if (!isSupabaseConfigured) {
+    return localNotes.getNotes();
+  }
+
   const { data, error } = await supabase
     .from('notes')
     .select('*')
@@ -14,7 +19,7 @@ export async function getNotes(): Promise<Note[]> {
   
   if (error) {
     console.error('Error fetching notes:', error);
-    return [];
+    return localNotes.getNotes();
   }
   
   return data.map((row: any) => ({
@@ -25,6 +30,10 @@ export async function getNotes(): Promise<Note[]> {
 }
 
 export async function addNote(content: string): Promise<Note | null> {
+  if (!isSupabaseConfigured) {
+    return localNotes.addNote(content);
+  }
+
   const { data, error } = await supabase
     .from('notes')
     .insert({ content })
@@ -44,6 +53,11 @@ export async function addNote(content: string): Promise<Note | null> {
 }
 
 export async function deleteNote(id: string): Promise<boolean> {
+  if (!isSupabaseConfigured) {
+    localNotes.deleteNote(id);
+    return true;
+  }
+
   const { error } = await supabase
     .from('notes')
     .delete()

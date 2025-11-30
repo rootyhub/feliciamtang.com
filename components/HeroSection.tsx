@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { checkAdmin } from "@/lib/auth";
+import { getCurrentSong, updateCurrentSong, SongSetting } from "@/lib/db/settings";
 
 const links = [
   {
@@ -34,8 +35,7 @@ const links = [
   },
 ];
 
-// Mock data - replace with actual data storage later
-let currentSong = {
+const defaultSong: SongSetting = {
   title: "Don't Look Back in Anger",
   artist: "Oasis",
   albumCover: "/dontlookbackinanger.jpg",
@@ -44,21 +44,31 @@ let currentSong = {
 
 export default function HeroSection() {
   const [isAdmin, setIsAdmin] = useState(false);
-  const [song, setSong] = useState(currentSong);
+  const [song, setSong] = useState<SongSetting>(defaultSong);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isEmailOpen, setIsEmailOpen] = useState(false);
-  const [editForm, setEditForm] = useState(currentSong);
+  const [editForm, setEditForm] = useState<SongSetting>(defaultSong);
   const [showCats, setShowCats] = useState(false);
   const [copiedEmail, setCopiedEmail] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     setIsAdmin(checkAdmin());
+    // Load song from Supabase
+    getCurrentSong().then((songData) => {
+      setSong(songData);
+      setEditForm(songData);
+    });
   }, []);
 
-  const handleSave = () => {
-    currentSong = editForm;
-    setSong(editForm);
-    setIsEditOpen(false);
+  const handleSave = async () => {
+    setIsSaving(true);
+    const success = await updateCurrentSong(editForm);
+    if (success) {
+      setSong(editForm);
+      setIsEditOpen(false);
+    }
+    setIsSaving(false);
   };
 
   const unleashCats = () => {
