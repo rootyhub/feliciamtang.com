@@ -322,6 +322,15 @@ export default function HeroSection() {
               <img src="https://upload.wikimedia.org/wikipedia/commons/5/57/X_logo_2023_%28white%29.png" alt="X/Twitter" className="w-3 h-3 bg-black p-0.5 flex-shrink-0" />
               <span className="text-[10px] sm:text-xs connect-text">Twitter/X</span>
             </a>
+            <a
+              href="https://linkedin.com/in/feliciamtang"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-2 py-0.5 hover:opacity-80 transition-opacity connect-link"
+            >
+              <img src="https://upload.wikimedia.org/wikipedia/commons/c/ca/LinkedIn_logo_initials.png" alt="LinkedIn" className="w-3 h-3 flex-shrink-0" />
+              <span className="text-[10px] sm:text-xs connect-text">LinkedIn</span>
+            </a>
             <Dialog open={isEmailOpen} onOpenChange={setIsEmailOpen}>
               <DialogTrigger asChild>
                 <button

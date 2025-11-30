@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Edit2, Trash2, ArrowLeft, Upload, X, ChevronUp, ChevronDown } from "lucide-react";
+import { Plus, Edit2, Trash2, ArrowLeft, Upload, X, ChevronUp, ChevronDown, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -34,21 +34,31 @@ import {
   updatePage,
   deletePage,
 } from "@/lib/pages";
+import {
+  getAllBlogPosts,
+  addBlogPost,
+  updateBlogPost,
+  deleteBlogPost,
+} from "@/lib/blog";
 import { checkAdmin } from "@/lib/auth";
-import { Habit, Page } from "@/lib/types";
+import { Habit, Page, BlogPost } from "@/lib/types";
 import Link from "next/link";
 
 export default function AdminPage() {
   const router = useRouter();
   const [habits, setHabits] = useState<Habit[]>([]);
   const [pages, setPages] = useState<Page[]>([]);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddSubHabitDialogOpen, setIsAddSubHabitDialogOpen] = useState(false);
   const [isAddPageDialogOpen, setIsAddPageDialogOpen] = useState(false);
   const [isEditPageDialogOpen, setIsEditPageDialogOpen] = useState(false);
+  const [isAddBlogDialogOpen, setIsAddBlogDialogOpen] = useState(false);
+  const [isEditBlogDialogOpen, setIsEditBlogDialogOpen] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [editingPage, setEditingPage] = useState<Page | null>(null);
+  const [editingBlog, setEditingBlog] = useState<BlogPost | null>(null);
   const [parentHabitForSub, setParentHabitForSub] = useState<Habit | null>(null);
   const [newPage, setNewPage] = useState({
     title: "",
@@ -56,6 +66,16 @@ export default function AdminPage() {
     body: "",
     images: [] as string[],
     isFeatured: false,
+  });
+  const [newBlog, setNewBlog] = useState({
+    title: "",
+    slug: "",
+    content: "",
+    excerpt: "",
+    coverImage: "",
+    images: [] as string[],
+    layout: "default" as "default" | "gallery" | "photo-journal",
+    published: true,
   });
 
   useEffect(() => {
@@ -65,6 +85,7 @@ export default function AdminPage() {
     }
     setHabits(getHabits());
     setPages(getPages());
+    setBlogPosts(getAllBlogPosts());
   }, [router]);
 
   const handleAddHabit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -249,9 +270,10 @@ export default function AdminPage() {
           </div>
 
           <Tabs defaultValue="habits" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="habits">Manage Habits</TabsTrigger>
-              <TabsTrigger value="pages">Manage Pages</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="habits">Habits</TabsTrigger>
+              <TabsTrigger value="pages">Pages</TabsTrigger>
+              <TabsTrigger value="blog">Blog</TabsTrigger>
             </TabsList>
 
             {/* HABITS TAB */}
@@ -911,6 +933,392 @@ export default function AdminPage() {
                     )}
                   </div>
                 </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* BLOG TAB */}
+            <TabsContent value="blog">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Manage Blog Posts</CardTitle>
+                    <Dialog open={isAddBlogDialogOpen} onOpenChange={setIsAddBlogDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button onClick={() => setNewBlog({
+                          title: "",
+                          slug: "",
+                          content: "",
+                          excerpt: "",
+                          coverImage: "",
+                          images: [],
+                          layout: "default",
+                          published: true,
+                        })}>
+                          <Plus className="mr-2 h-4 w-4" />
+                          New Post
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle>Create New Blog Post</DialogTitle>
+                          <DialogDescription>
+                            Create a new blog post with photos.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="blog-title">Title</Label>
+                            <Input
+                              id="blog-title"
+                              value={newBlog.title}
+                              onChange={(e) => {
+                                const title = e.target.value;
+                                const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                                setNewBlog({ ...newBlog, title, slug });
+                              }}
+                              placeholder="Post title"
+                              autoFocus
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="blog-slug">URL Slug</Label>
+                            <Input
+                              id="blog-slug"
+                              value={newBlog.slug}
+                              onChange={(e) => setNewBlog({ ...newBlog, slug: e.target.value })}
+                              placeholder="post-url-slug"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="blog-excerpt">Excerpt</Label>
+                            <Input
+                              id="blog-excerpt"
+                              value={newBlog.excerpt}
+                              onChange={(e) => setNewBlog({ ...newBlog, excerpt: e.target.value })}
+                              placeholder="Brief description"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="blog-cover">Cover Image</Label>
+                            <Input
+                              id="blog-cover"
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const reader = new FileReader();
+                                  reader.onloadend = () => {
+                                    setNewBlog({ ...newBlog, coverImage: reader.result as string });
+                                  };
+                                  reader.readAsDataURL(file);
+                                }
+                              }}
+                            />
+                            {newBlog.coverImage && (
+                              <div className="relative mt-2">
+                                <img src={newBlog.coverImage} alt="Cover" className="h-32 w-full object-cover border border-border" />
+                                <button
+                                  type="button"
+                                  onClick={() => setNewBlog({ ...newBlog, coverImage: "" })}
+                                  className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground p-1 border border-border"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="blog-content">Content (Markdown supported)</Label>
+                            <textarea
+                              id="blog-content"
+                              value={newBlog.content}
+                              onChange={(e) => setNewBlog({ ...newBlog, content: e.target.value })}
+                              placeholder="Write your blog post here... Markdown is supported!"
+                              className="flex min-h-[200px] w-full border-2 border-border bg-background px-3 py-2 text-xs sm:text-sm font-mono"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Photo Gallery</Label>
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const reader = new FileReader();
+                                  reader.onloadend = () => {
+                                    setNewBlog({ ...newBlog, images: [...newBlog.images, reader.result as string] });
+                                  };
+                                  reader.readAsDataURL(file);
+                                }
+                              }}
+                            />
+                            {newBlog.images.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                {newBlog.images.map((img, idx) => (
+                                  <div key={idx} className="relative">
+                                    <img src={img} alt={`Photo ${idx + 1}`} className="h-20 w-20 object-cover border border-border" />
+                                    <button
+                                      type="button"
+                                      onClick={() => setNewBlog({ ...newBlog, images: newBlog.images.filter((_, i) => i !== idx) })}
+                                      className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground p-1 border border-border"
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="blog-layout">Layout Style</Label>
+                            <select
+                              id="blog-layout"
+                              value={newBlog.layout}
+                              onChange={(e) => setNewBlog({ ...newBlog, layout: e.target.value as "default" | "gallery" | "photo-journal" })}
+                              className="flex h-10 w-full border border-border bg-background px-3 py-2 text-sm"
+                            >
+                              <option value="default">Default (Text focused)</option>
+                              <option value="gallery">Gallery (Grid photos)</option>
+                              <option value="photo-journal">Photo Journal (Large photos)</option>
+                            </select>
+                          </div>
+
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="blog-published"
+                              checked={newBlog.published}
+                              onCheckedChange={(checked) => setNewBlog({ ...newBlog, published: checked as boolean })}
+                            />
+                            <Label htmlFor="blog-published" className="cursor-pointer">
+                              Published
+                            </Label>
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <Button variant="outline" onClick={() => setIsAddBlogDialogOpen(false)}>
+                            Cancel
+                          </Button>
+                          <Button onClick={() => {
+                            if (newBlog.title.trim() && newBlog.slug.trim()) {
+                              addBlogPost({
+                                ...newBlog,
+                                date: new Date().toISOString(),
+                              });
+                              setBlogPosts(getAllBlogPosts());
+                              setIsAddBlogDialogOpen(false);
+                            }
+                          }}>
+                            Create Post
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {blogPosts.length === 0 ? (
+                      <p className="text-center py-8 text-muted-foreground">No blog posts yet.</p>
+                    ) : (
+                      blogPosts.map((post) => (
+                        <div key={post.id} className="flex items-center justify-between border border-border bg-muted/50 p-3">
+                          <div className="flex items-center gap-3">
+                            {post.coverImage && (
+                              <img src={post.coverImage} alt={post.title} className="w-16 h-16 object-cover border border-border" />
+                            )}
+                            <div>
+                              <p className="font-medium">{post.title}</p>
+                              <p className="text-xs text-muted-foreground">
+                                /{post.slug} • {post.images?.length || 0} photos • {post.published ? "Published" : "Draft"}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Dialog
+                              open={isEditBlogDialogOpen && editingBlog?.id === post.id}
+                              onOpenChange={(open) => {
+                                setIsEditBlogDialogOpen(open);
+                                if (open) {
+                                  setEditingBlog(post);
+                                } else {
+                                  setEditingBlog(null);
+                                }
+                              }}
+                            >
+                              <DialogTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <Edit2 className="h-4 w-4" />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                                <DialogHeader>
+                                  <DialogTitle>Edit Blog Post</DialogTitle>
+                                </DialogHeader>
+                                {editingBlog && (
+                                  <div className="space-y-4 py-4">
+                                    <div className="space-y-2">
+                                      <Label>Title</Label>
+                                      <Input
+                                        value={editingBlog.title}
+                                        onChange={(e) => setEditingBlog({ ...editingBlog, title: e.target.value })}
+                                      />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                      <Label>Excerpt</Label>
+                                      <Input
+                                        value={editingBlog.excerpt || ""}
+                                        onChange={(e) => setEditingBlog({ ...editingBlog, excerpt: e.target.value })}
+                                      />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                      <Label>Cover Image</Label>
+                                      <Input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                          const file = e.target.files?.[0];
+                                          if (file) {
+                                            const reader = new FileReader();
+                                            reader.onloadend = () => {
+                                              setEditingBlog({ ...editingBlog, coverImage: reader.result as string });
+                                            };
+                                            reader.readAsDataURL(file);
+                                          }
+                                        }}
+                                      />
+                                      {editingBlog.coverImage && (
+                                        <div className="relative mt-2">
+                                          <img src={editingBlog.coverImage} alt="Cover" className="h-32 w-full object-cover border border-border" />
+                                          <button
+                                            type="button"
+                                            onClick={() => setEditingBlog({ ...editingBlog, coverImage: "" })}
+                                            className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground p-1 border border-border"
+                                          >
+                                            <X className="h-3 w-3" />
+                                          </button>
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    <div className="space-y-2">
+                                      <Label>Content</Label>
+                                      <textarea
+                                        value={editingBlog.content}
+                                        onChange={(e) => setEditingBlog({ ...editingBlog, content: e.target.value })}
+                                        className="flex min-h-[200px] w-full border-2 border-border bg-background px-3 py-2 text-xs sm:text-sm font-mono"
+                                      />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                      <Label>Add Photos</Label>
+                                      <Input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                          const file = e.target.files?.[0];
+                                          if (file) {
+                                            const reader = new FileReader();
+                                            reader.onloadend = () => {
+                                              setEditingBlog({ 
+                                                ...editingBlog, 
+                                                images: [...(editingBlog.images || []), reader.result as string] 
+                                              });
+                                            };
+                                            reader.readAsDataURL(file);
+                                          }
+                                        }}
+                                      />
+                                      {editingBlog.images && editingBlog.images.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 mt-2">
+                                          {editingBlog.images.map((img, idx) => (
+                                            <div key={idx} className="relative">
+                                              <img src={img} alt={`Photo ${idx + 1}`} className="h-20 w-20 object-cover border border-border" />
+                                              <button
+                                                type="button"
+                                                onClick={() => setEditingBlog({ 
+                                                  ...editingBlog, 
+                                                  images: editingBlog.images.filter((_, i) => i !== idx) 
+                                                })}
+                                                className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground p-1 border border-border"
+                                              >
+                                                <X className="h-3 w-3" />
+                                              </button>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    <div className="space-y-2">
+                                      <Label>Layout Style</Label>
+                                      <select
+                                        value={editingBlog.layout || "default"}
+                                        onChange={(e) => setEditingBlog({ ...editingBlog, layout: e.target.value as "default" | "gallery" | "photo-journal" })}
+                                        className="flex h-10 w-full border border-border bg-background px-3 py-2 text-sm"
+                                      >
+                                        <option value="default">Default (Text focused)</option>
+                                        <option value="gallery">Gallery (Grid photos)</option>
+                                        <option value="photo-journal">Photo Journal (Large photos)</option>
+                                      </select>
+                                    </div>
+
+                                    <div className="flex items-center space-x-2">
+                                      <Checkbox
+                                        checked={editingBlog.published}
+                                        onCheckedChange={(checked) => setEditingBlog({ ...editingBlog, published: checked as boolean })}
+                                      />
+                                      <Label className="cursor-pointer">Published</Label>
+                                    </div>
+                                  </div>
+                                )}
+                                <DialogFooter>
+                                  <Button variant="outline" onClick={() => {
+                                    setIsEditBlogDialogOpen(false);
+                                    setEditingBlog(null);
+                                  }}>
+                                    Cancel
+                                  </Button>
+                                  <Button onClick={() => {
+                                    if (editingBlog) {
+                                      updateBlogPost(editingBlog.id, editingBlog);
+                                      setBlogPosts(getAllBlogPosts());
+                                      setIsEditBlogDialogOpen(false);
+                                      setEditingBlog(null);
+                                    }
+                                  }}>
+                                    Save Changes
+                                  </Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                if (confirm("Delete this blog post?")) {
+                                  deleteBlogPost(post.id);
+                                  setBlogPosts(getAllBlogPosts());
+                                }
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>

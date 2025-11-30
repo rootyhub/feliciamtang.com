@@ -34,3 +34,20 @@ export interface Page {
   isFeatured?: boolean;
   externalUrl?: string; // Optional external link for blog posts, etc.
 }
+
+export interface BlogPost {
+  id: string;
+  slug: string;
+  title: string;
+  content: string;
+  excerpt?: string;
+  coverImage?: string;
+  images: string[]; // Gallery images
+  date: string;
+  published: boolean;
+  // UI Configuration
+  layout?: 'default' | 'gallery' | 'photo-journal';
+  backgroundColor?: string;
+  textColor?: string;
+  fontFamily?: string;
+}
