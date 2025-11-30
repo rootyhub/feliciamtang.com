@@ -519,7 +519,7 @@ export default function AdminPage() {
                     <CardTitle>Manage Pages</CardTitle>
                     <Dialog open={isAddPageDialogOpen} onOpenChange={setIsAddPageDialogOpen}>
                       <DialogTrigger asChild>
-                        <Button onClick={() => setNewPage({ title: "", headingImage: "", body: "", images: [] })}>
+                        <Button onClick={() => setNewPage({ title: "", headingImage: "", body: "", images: [], isFeatured: false })}>
                           <Plus className="mr-2 h-4 w-4" />
                           Add Page
                         </Button>
@@ -655,7 +655,7 @@ export default function AdminPage() {
                                       headingImage: page.headingImage || "",
                                       body: page.body,
                                       images: page.images || [],
-                                      isFeatured: page.isFeatured,
+                                      isFeatured: page.isFeatured ?? false,
                                     });
                                   } else {
                                     setEditingPage(null);
@@ -781,7 +781,7 @@ export default function AdminPage() {
                                     headingImage: page.headingImage || "",
                                     body: page.body,
                                     images: page.images || [],
-                                    isFeatured: page.isFeatured,
+                                    isFeatured: page.isFeatured ?? false,
                                   });
                                 } else {
                                   setEditingPage(null);
