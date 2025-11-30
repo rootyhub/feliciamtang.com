@@ -157,10 +157,15 @@ export async function deletePage(id: string): Promise<boolean> {
     return true;
   }
 
-  const { error } = await supabase
+  console.log('Attempting to delete page with id:', id);
+  
+  const { data, error } = await supabase
     .from('pages')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .select();
+  
+  console.log('Delete result - data:', data, 'error:', error);
   
   if (error) {
     console.error('Error deleting page:', error);
