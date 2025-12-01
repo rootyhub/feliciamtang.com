@@ -231,23 +231,21 @@ export default function MyPages() {
           </div>
         ))}
         
-        {/* Website Notes link - only visible to admin */}
-        {isAdmin && (
-          <div
-            className="flex items-stretch gap-1 cursor-pointer hover:opacity-80 transition-opacity h-5 mt-2"
-            onClick={() => setShowNotesPage(true)}
-            style={{ marginBottom: '2px' }}
-          >
-            <div className="w-5 h-5 bg-card inner-card-grey flex items-center justify-center flex-shrink-0 border-3d">
-              <ChevronRight className="h-3 w-3" />
-            </div>
-            <div className="flex-1 h-5 px-2 bg-card inner-card-grey flex items-center justify-end overflow-hidden border-3d">
-              <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">
-                WEBSITE NOTES
-              </span>
-            </div>
+        {/* Website Notes link - visible to everyone */}
+        <div
+          className="flex items-stretch gap-1 cursor-pointer hover:opacity-80 transition-opacity h-5 mt-2"
+          onClick={() => setShowNotesPage(true)}
+          style={{ marginBottom: '2px' }}
+        >
+          <div className="w-5 h-5 bg-card inner-card-grey flex items-center justify-center flex-shrink-0 border-3d">
+            <ChevronRight className="h-3 w-3" />
           </div>
-        )}
+          <div className="flex-1 h-5 px-2 bg-card inner-card-grey flex items-center justify-end overflow-hidden border-3d">
+            <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">
+              WEBSITE NOTES ({notes.length})
+            </span>
+          </div>
+        </div>
         
         {/* Note submission box - always expanded */}
         <div className="mt-3 space-y-2">
@@ -473,17 +471,19 @@ export default function MyPages() {
               <div className="space-y-3">
                 {notes.map((note) => (
                   <div key={note.id} className="p-3 bg-muted border-3d relative">
-                    <button
-                      onClick={() => handleDeleteNote(note.id)}
-                      className="absolute top-2 right-2 text-muted-foreground hover:text-destructive transition-colors"
-                      title="Delete note"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    {isAdmin && (
+                      <button
+                        onClick={() => handleDeleteNote(note.id)}
+                        className="absolute top-2 right-2 text-muted-foreground hover:text-destructive transition-colors"
+                        title="Delete note"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
                     <p className="text-xs text-muted-foreground mb-1">
                       {note.createdAt.toLocaleString()}
                     </p>
-                    <p className="text-sm whitespace-pre-wrap break-words pr-6">
+                    <p className={`text-sm whitespace-pre-wrap break-words ${isAdmin ? 'pr-6' : ''}`}>
                       {note.content}
                     </p>
                   </div>
