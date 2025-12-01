@@ -50,16 +50,21 @@ export async function uploadBase64Image(
   base64: string,
   folder: string = 'pages'
 ): Promise<string | null> {
+  console.log('uploadBase64Image called, isSupabaseConfigured:', isSupabaseConfigured);
+  
   if (!isSupabaseConfigured) {
+    console.log('Supabase not configured, returning base64 as-is');
     return base64; // Return as-is for local development
   }
 
   // If it's already a URL (not base64), return as-is
   if (base64.startsWith('http://') || base64.startsWith('https://') || base64.startsWith('/')) {
+    console.log('Already a URL, returning as-is:', base64.substring(0, 50));
     return base64;
   }
 
   try {
+    console.log('Converting base64 to blob...');
     // Convert base64 to blob
     const response = await fetch(base64);
     const blob = await response.blob();
@@ -70,6 +75,8 @@ export async function uploadBase64Image(
     
     // Generate unique filename
     const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+    
+    console.log('Uploading to Supabase Storage:', fileName, 'size:', blob.size);
 
     // Upload to Supabase Storage
     const { data, error } = await supabase.storage
@@ -81,7 +88,7 @@ export async function uploadBase64Image(
       });
 
     if (error) {
-      console.error('Error uploading image:', error);
+      console.error('Error uploading image to Supabase:', error);
       return null;
     }
 
@@ -90,6 +97,7 @@ export async function uploadBase64Image(
       .from('images')
       .getPublicUrl(data.path);
 
+    console.log('Upload successful, public URL:', urlData.publicUrl);
     return urlData.publicUrl;
   } catch (err) {
     console.error('Error converting/uploading base64 image:', err);

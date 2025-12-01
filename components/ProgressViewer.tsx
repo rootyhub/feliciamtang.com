@@ -28,12 +28,13 @@ export default function ProgressViewer() {
   }, []);
 
   // Get all habits including sub-habits (for popover display)
-  const getAllHabitsFlat = (habitsList: Habit[]): Habit[] => {
-    const flat: Habit[] = [];
+  // Returns habits with an additional _isSubHabit marker
+  const getAllHabitsFlat = (habitsList: Habit[]): (Habit & { _isSubHabit?: boolean })[] => {
+    const flat: (Habit & { _isSubHabit?: boolean })[] = [];
     habitsList.forEach((habit) => {
-        flat.push(habit);
+      flat.push({ ...habit, _isSubHabit: false });
       if (habit.subHabits && habit.subHabits.length > 0) {
-        habit.subHabits.forEach((sub) => flat.push(sub));
+        habit.subHabits.forEach((sub) => flat.push({ ...sub, _isSubHabit: true }));
       }
     });
     return flat;
@@ -153,9 +154,8 @@ export default function ProgressViewer() {
     // Check all habits including sub-habits for the popover display
     allHabitsFlat.forEach((habit) => {
       if (habit.logs?.[dateStr] === true) {
-        // Determine if this is a sub-habit by checking if its id contains a dash (e.g., "2-1")
-        const isSubHabit = habit.id.includes("-") && habit.id.split("-").length > 1 && !isNaN(Number(habit.id.split("-")[1]));
-        completed.push({ habit, isNegative: habit.isNegative || false, isSubHabit });
+        // Use the _isSubHabit marker we set when flattening
+        completed.push({ habit, isNegative: habit.isNegative || false, isSubHabit: habit._isSubHabit || false });
       }
     });
     
