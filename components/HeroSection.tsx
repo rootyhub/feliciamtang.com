@@ -358,7 +358,7 @@ export default function HeroSection() {
                   <div className="flex items-center justify-between p-2 bg-muted border border-border">
                     <div>
                       <p className="text-xs text-muted-foreground">Work</p>
-                      <p className="text-sm font-medium">felicia@exa.ai</p>
+                      <p className="text-sm font-medium">felicia @ exa . ai</p>
                     </div>
                     <Button
                       variant="ghost"
@@ -376,7 +376,7 @@ export default function HeroSection() {
                   <div className="flex items-center justify-between p-2 bg-muted border border-border">
                     <div>
                       <p className="text-xs text-muted-foreground">Personal</p>
-                      <p className="text-sm font-medium">feliciamtang@gmail.com</p>
+                      <p className="text-sm font-medium">feliciamtang @ gmail . com</p>
                     </div>
                     <Button
                       variant="ghost"
