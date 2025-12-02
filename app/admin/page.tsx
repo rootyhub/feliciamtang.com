@@ -207,9 +207,11 @@ export default function AdminPage() {
         body: newPage.body || editingPage.body,
         images: newPage.images, // Use newPage.images directly as it's already populated with existing + new
         isFeatured: editingPage.isFeatured,
+        externalUrl: newPage.externalUrl || undefined, // Include external URL
       };
       
       console.log('Saving page with images:', pageToUpdate.images);
+      console.log('External URL:', pageToUpdate.externalUrl);
       
       if (pageToUpdate.title.trim()) {
         const result = await updatePage(editingPage.id, pageToUpdate);
@@ -709,6 +711,7 @@ export default function AdminPage() {
                                 <p className={`font-medium ${!page.published ? 'text-muted-foreground line-through' : ''}`}>
                                   {page.title}
                                   {!page.published && <span className="ml-2 text-xs">(hidden)</span>}
+                                  {page.externalUrl && <span className="ml-2 text-xs text-blue-500">🔗 external link</span>}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
                                   {new Date(page.createdAt).toLocaleDateString()}
@@ -824,6 +827,22 @@ export default function AdminPage() {
                                         )}
                                       </div>
                                       
+                                      <div className="space-y-2">
+                                        <Label htmlFor="edit-external-url">
+                                          External Link URL
+                                          <span className="text-xs text-muted-foreground ml-2">(makes this a button that opens the link)</span>
+                                        </Label>
+                                        <Input
+                                          id="edit-external-url"
+                                          value={newPage.externalUrl}
+                                          onChange={(e) => setNewPage({ ...newPage, externalUrl: e.target.value })}
+                                          placeholder="https://substack.com/..."
+                                        />
+                                        {newPage.externalUrl && (
+                                          <p className="text-xs text-green-600">✓ This page will open as an external link</p>
+                                        )}
+                                      </div>
+
                                       <div className="flex items-center space-x-2">
                                         <Checkbox 
                                           id="edit-is-featured" 
