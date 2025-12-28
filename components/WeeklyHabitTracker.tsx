@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from "date-fns";
-import { Settings, ChevronDown, ChevronRight } from "lucide-react";
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, addWeeks, subWeeks } from "date-fns";
+import { Settings, ChevronDown, ChevronRight, ChevronLeft } from "lucide-react";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
 import { Card, CardContent, CardHeader } from "./ui/card";
@@ -18,11 +18,15 @@ export default function WeeklyHabitTracker() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [expandedHabits, setExpandedHabits] = useState<Set<string>>(new Set());
+  const [weekOffset, setWeekOffset] = useState(0); // 0 = current week, -1 = last week, etc.
 
   const today = new Date();
-  const weekStart = startOfWeek(today, { weekStartsOn: 0 });
-  const weekEnd = endOfWeek(today, { weekStartsOn: 0 });
+  const displayWeekBase = addWeeks(today, weekOffset);
+  const weekStart = startOfWeek(displayWeekBase, { weekStartsOn: 0 });
+  const weekEnd = endOfWeek(displayWeekBase, { weekStartsOn: 0 });
   const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
+  
+  const isCurrentWeek = weekOffset === 0;
 
   useEffect(() => {
     setIsAdmin(checkAdmin());
@@ -180,7 +184,38 @@ export default function WeeklyHabitTracker() {
             {/* Header row - compact */}
             <div className="bg-muted inner-card-grey-muted px-1 sm:px-2 py-0.5 mb-1 flex-shrink-0 border-3d">
               <div className="grid grid-cols-[1fr_24px_repeat(7,24px)] sm:grid-cols-[1fr_32px_repeat(7,32px)] gap-1 text-[8px] sm:text-[10px] font-bold">
-                <div className="whitespace-nowrap">WEEK OF {format(weekStart, "M/d/yyyy")}</div>
+                <div className="whitespace-nowrap flex items-center gap-1">
+                  {isAdmin && (
+                    <button
+                      onClick={() => setWeekOffset(weekOffset - 1)}
+                      className="p-0.5 hover:bg-muted-foreground/20 rounded"
+                      title="Previous week"
+                    >
+                      <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+                    </button>
+                  )}
+                  <span className={!isCurrentWeek ? "text-amber-600" : ""}>
+                    {isCurrentWeek ? "THIS WEEK" : format(weekStart, "M/d")} - {format(weekEnd, "M/d/yyyy")}
+                  </span>
+                  {isAdmin && (
+                    <button
+                      onClick={() => setWeekOffset(weekOffset + 1)}
+                      disabled={weekOffset >= 0}
+                      className="p-0.5 hover:bg-muted-foreground/20 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                      title="Next week"
+                    >
+                      <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
+                    </button>
+                  )}
+                  {!isCurrentWeek && isAdmin && (
+                    <button
+                      onClick={() => setWeekOffset(0)}
+                      className="ml-1 text-[8px] sm:text-[9px] underline hover:text-primary"
+                    >
+                      today
+                    </button>
+                  )}
+                </div>
                 <div></div>
                 {weekDays.map((day) => (
                   <div
