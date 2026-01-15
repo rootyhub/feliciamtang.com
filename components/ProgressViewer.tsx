@@ -65,15 +65,19 @@ export default function ProgressViewer() {
 
   const allHabitsFlat = getAllHabitsFlat(habits); // For popover display
   const parentHabits = getParentHabitsOnly(habits); // For percentage calculation
-  const positiveHabits = parentHabits.filter((h) => !h.isNegative);
-  const negativeHabits = parentHabits.filter((h) => h.isNegative);
 
   // Yearly data - all days of the year
   const yearStart = startOfYear(today);
   const yearEnd = endOfYear(today);
   const yearDays = eachDayOfInterval({ start: yearStart, end: yearEnd });
+  const yearDaysCount = yearDays.length; // 365 or 366 for leap years
+  const yearWidth = yearDaysCount * 4; // 4px per day
 
   const yearlyData = useMemo(() => {
+    const parentHabitsList = getParentHabitsOnly(habits);
+    const positiveHabits = parentHabitsList.filter((h) => !h.isNegative);
+    const negativeHabits = parentHabitsList.filter((h) => h.isNegative);
+    
     return yearDays.map((day) => {
       const dateStr = format(day, "yyyy-MM-dd");
       
@@ -82,18 +86,18 @@ export default function ProgressViewer() {
       let negativeCompleted = 0;
       let negativeTotal = 0;
         
-        positiveHabits.forEach((habit) => {
-          positiveTotal++;
+      positiveHabits.forEach((habit) => {
+        positiveTotal++;
         if (isHabitCompletedForDate(habit, dateStr)) {
-            positiveCompleted++;
-          }
-        });
+          positiveCompleted++;
+        }
+      });
         
-        negativeHabits.forEach((habit) => {
-          negativeTotal++;
+      negativeHabits.forEach((habit) => {
+        negativeTotal++;
         if (isHabitCompletedForDate(habit, dateStr)) {
-            negativeCompleted++;
-          }
+          negativeCompleted++;
+        }
       });
 
       const positiveRate = positiveTotal > 0 ? (positiveCompleted / positiveTotal) * 100 : 0;
@@ -105,7 +109,7 @@ export default function ProgressViewer() {
         negativeRate,
       };
     });
-  }, [yearDays, positiveHabits, negativeHabits]);
+  }, [habits, yearStart.getTime(), yearEnd.getTime()]);
 
   // Monthly data
   const monthStart = startOfMonth(today);
@@ -113,6 +117,10 @@ export default function ProgressViewer() {
   const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
   const monthlyData = useMemo(() => {
+    const parentHabitsList = getParentHabitsOnly(habits);
+    const positiveHabits = parentHabitsList.filter((h) => !h.isNegative);
+    const negativeHabits = parentHabitsList.filter((h) => h.isNegative);
+    
     return monthDays.map((day) => {
       const dateStr = format(day, "yyyy-MM-dd");
       
@@ -144,7 +152,7 @@ export default function ProgressViewer() {
         negativeRate,
       };
     });
-  }, [monthDays, positiveHabits, negativeHabits]);
+  }, [habits, monthStart.getTime(), monthEnd.getTime()]);
 
   // Get breakdown for a specific date (shows all habits including sub-habits)
   const getDateBreakdown = (date: Date) => {
@@ -162,17 +170,17 @@ export default function ProgressViewer() {
     return completed;
   };
 
-  // Scroll to today's position on mount for yearly view
+  // Scroll to January 1st on mount for yearly view
   useEffect(() => {
-    if (viewMode === "yearly" && scrollContainerRef.current) {
-      // Scroll to the right (today's position) after a short delay to ensure render
+    if (viewMode === "yearly" && scrollContainerRef.current && yearlyData.length > 0) {
+      // Scroll to the left (January 1st) after a short delay to ensure render
       setTimeout(() => {
         if (scrollContainerRef.current) {
-          scrollContainerRef.current.scrollLeft = scrollContainerRef.current.scrollWidth;
+          scrollContainerRef.current.scrollLeft = 0;
         }
       }, 100);
     }
-  }, [viewMode]);
+  }, [viewMode, yearlyData.length]);
 
   return (
     <Card className="flex flex-col h-auto min-h-[300px] overflow-hidden">
@@ -230,10 +238,10 @@ export default function ProgressViewer() {
                 className="flex-1 relative border-l border-b border-border min-w-0 overflow-x-auto overflow-y-hidden"
               >
                 {/* Zero line - exactly at 50% */}
-                <div className="absolute left-0 border-t border-border z-10 pointer-events-none" style={{ top: '50%', width: '1460px' }} />
+                <div className="absolute left-0 border-t border-border z-10 pointer-events-none" style={{ top: '50%', width: `${yearWidth}px` }} />
                 
-                {/* Bars container - 365 days, 4px each = 1460px total width */}
-                <div className="h-full flex gap-0" style={{ width: '1460px' }}>
+                {/* Bars container - dynamic width based on days in year */}
+                <div className="h-full flex gap-0" style={{ width: `${yearWidth}px` }}>
                   {yearlyData.map((dayData, index) => {
                     const isToday = format(dayData.day, "yyyy-MM-dd") === format(today, "yyyy-MM-dd");
                     const breakdown = getDateBreakdown(dayData.day);
@@ -335,8 +343,8 @@ export default function ProgressViewer() {
                 {/* Zero line - exactly at 50% */}
                 <div className="absolute left-0 right-0 border-t border-border z-10" style={{ top: '50%' }} />
                 
-                {/* Bars container - no overflow */}
-                <div className="absolute inset-0 flex gap-[1px]">
+                {/* Bars container - no overflow, better spacing */}
+                <div className="absolute inset-0 flex gap-0.5">
                   {monthlyData.map((day, index) => {
                     const isToday = format(day.day, "yyyy-MM-dd") === format(today, "yyyy-MM-dd");
                     const breakdown = getDateBreakdown(day.day);
@@ -345,7 +353,7 @@ export default function ProgressViewer() {
                       <Popover key={format(day.day, "yyyy-MM-dd")}>
                         <PopoverTrigger asChild>
                           <button
-                            className="flex-1 relative h-full cursor-pointer hover:opacity-80 transition-opacity"
+                            className="flex-1 min-w-[2px] relative h-full cursor-pointer hover:opacity-80 transition-opacity"
                             onClick={() => setSelectedDate(day.day)}
                       >
                         {/* Positive bar - grows UP from center (50%) */}

@@ -127,9 +127,9 @@ export default function WeeklyHabitTracker() {
 
     return (
       <div key={habit.id} className="py-1">
-        <div className="grid grid-cols-[1fr_24px_repeat(7,24px)] sm:grid-cols-[1fr_32px_repeat(7,32px)] gap-1 items-center">
+        <div className="grid grid-cols-[minmax(120px,1fr)_24px_repeat(7,24px)] sm:grid-cols-[minmax(140px,1fr)_32px_repeat(7,32px)] gap-1 items-center">
           {/* Habit name column - horizontal scroll for long names */}
-          <div className={`flex items-center overflow-x-auto ${isSubHabit ? "pl-4 sm:pl-6" : ""}`}>
+          <div className={`flex items-center overflow-x-auto min-w-0 ${isSubHabit ? "pl-4 sm:pl-6" : ""}`}>
             <span className={`text-[10px] sm:text-sm whitespace-nowrap ${habit.isNegative ? "text-red-600" : ""}`}>
               {habit.name}
             </span>
@@ -183,44 +183,44 @@ export default function WeeklyHabitTracker() {
           <div className="min-w-[400px]">
             {/* Header row - compact */}
             <div className="bg-muted inner-card-grey-muted px-1 sm:px-2 py-0.5 mb-1 flex-shrink-0 border-3d">
-              <div className="grid grid-cols-[1fr_24px_repeat(7,24px)] sm:grid-cols-[1fr_32px_repeat(7,32px)] gap-1 text-[8px] sm:text-[10px] font-bold">
-                <div className="whitespace-nowrap flex items-center gap-1">
+              <div className="grid grid-cols-[minmax(120px,1fr)_24px_repeat(7,24px)] sm:grid-cols-[minmax(140px,1fr)_32px_repeat(7,32px)] gap-1 text-[8px] sm:text-[10px] font-bold">
+                <div className="flex items-center gap-1">
                   {isAdmin && (
                     <button
                       onClick={() => setWeekOffset(weekOffset - 1)}
-                      className="p-0.5 hover:bg-muted-foreground/20 rounded"
+                      className="px-1 py-0.5 hover:bg-muted-foreground/20 rounded text-[10px] sm:text-xs flex-shrink-0"
                       title="Previous week"
                     >
-                      <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+                      ←
                     </button>
                   )}
-                  <span className={!isCurrentWeek ? "text-amber-600" : ""}>
-                    {isCurrentWeek ? "THIS WEEK" : format(weekStart, "M/d")} - {format(weekEnd, "M/d/yyyy")}
+                  <span className={`${!isCurrentWeek ? "text-amber-600" : ""} text-[10px] sm:text-xs whitespace-nowrap`}>
+                    {format(weekStart, "M/d/yyyy")}
                   </span>
                   {isAdmin && (
                     <button
                       onClick={() => setWeekOffset(weekOffset + 1)}
                       disabled={weekOffset >= 0}
-                      className="p-0.5 hover:bg-muted-foreground/20 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="px-1 py-0.5 hover:bg-muted-foreground/20 rounded disabled:opacity-30 disabled:cursor-not-allowed text-[10px] sm:text-xs flex-shrink-0"
                       title="Next week"
                     >
-                      <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
+                      →
                     </button>
                   )}
                   {!isCurrentWeek && isAdmin && (
                     <button
                       onClick={() => setWeekOffset(0)}
-                      className="ml-1 text-[8px] sm:text-[9px] underline hover:text-primary"
+                      className="ml-1 text-[9px] sm:text-[10px] underline hover:text-primary flex-shrink-0"
                     >
                       today
                     </button>
                   )}
                 </div>
-                <div></div>
+                <div className="flex-shrink-0"></div>
                 {weekDays.map((day) => (
                   <div
                     key={format(day, "yyyy-MM-dd")}
-                    className={`text-center ${
+                    className={`text-center flex-shrink-0 ${
                       isSameDay(day, today) ? "underline" : ""
                     }`}
                   >
